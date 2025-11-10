@@ -323,7 +323,7 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
     return p, lin_rect, log_rect, lin_color_bar, log_color_bar, pct_rect, pct_color_bar
 
 
-def build_per_season_data(top_club_ids, transfers_enriched, all_seasons):
+def build_per_season_data(club_ids, transfers_enriched, all_seasons):
     """
     Pre-compute aggregated matrices for each season individually.
     Returns a dictionary mapping season -> matrices for that season.
@@ -332,10 +332,10 @@ def build_per_season_data(top_club_ids, transfers_enriched, all_seasons):
     for season in all_seasons:
         season_transfers = transfers_enriched[transfers_enriched['transfer_season'] == season]
         per_season[season] = {
-            'money_in': money_in_matrix(top_club_ids, season_transfers),
-            'money_out': money_out_matrix(top_club_ids, season_transfers),
-            'players_in': players_in_matrix(top_club_ids, season_transfers),
-            'players_out': players_out_matrix(top_club_ids, season_transfers)
+            'money_in': money_in_matrix(club_ids, season_transfers),
+            'money_out': money_out_matrix(club_ids, season_transfers),
+            'players_in': players_in_matrix(club_ids, season_transfers),
+            'players_out': players_out_matrix(club_ids, season_transfers)
         }
     return per_season
 

@@ -83,8 +83,9 @@ def build_dashboard():
         width=600
     )
 
-    # Pre-compute per-season aggregated data for dynamic filtering
-    per_season_data = build_per_season_data(top_club_ids, transfers_enriched, all_seasons)
+    # Pre-compute per-season aggregated data for ALL clubs
+    all_club_ids = clubs_enriched['club_id'].dropna().unique().tolist()
+    per_season_data = build_per_season_data(all_club_ids, transfers_enriched, all_seasons)
 
     # Convert per-season matrices to JSON-serializable format for JavaScript
     # Convert float club IDs to integers for consistent keys
@@ -131,6 +132,38 @@ def build_dashboard():
         value="Linear",
         options=["Linear", "Log", "Percentage"]
     )
+
+    club_mode_select = Select(
+        title="Clubs",
+        value="Top 50",
+        options=["Top 50", "By country"]
+    )
+
+    # Available countries (from clubs_enriched / club_country_map)
+    available_countries = sorted(
+        {c for c in clubs_enriched['club_country'].unique()
+         if c not in ('Unknown', 'Without Club', 'Retired')}
+    )
+
+    country_select = Select(
+        title="Country",
+        value=available_countries[0] if available_countries else "",
+        options=available_countries,
+        disabled=True
+    )
+
+    club_mode_callback = CustomJS(
+        args=dict(
+            club_mode_select=club_mode_select,
+            country_select=country_select
+        ),
+        code="""
+        const mode = club_mode_select.value;
+        country_select.disabled = (mode !== 'By country');
+        """
+    )
+    club_mode_select.js_on_change('value', club_mode_callback)
+
     scale_callback = CustomJS(
         args=dict(
             scale_select=scale_select,
@@ -207,6 +240,16 @@ def build_dashboard():
     # If you want special rows at the bottom consistently, and you still have ordered_rows():
     all_countries = ordered_rows(all_countries, extras=('Without Club', 'Retired', 'Unknown'))
 
+    # JS helpers: mappings for clubs
+    top_club_ids_int = [int(cid) for cid in top_club_ids]
+
+    club_country_map_js = {int(k): v for k, v in club_country_map.items()}
+
+    club_display_map_js = {
+        int(cid): f"{club_id_to_name.get(cid, str(cid))} ({club_country_map.get(cid, 'Unknown')})"
+        for cid in clubs_enriched['club_id']
+    }
+
     season_callback = CustomJS(
         args=dict(
             season_select=season_select,
@@ -226,9 +269,17 @@ def build_dashboard():
                 po_pct_rect.data_source if po_pct_rect else None
             ],
             matrices_keys=['money_in', 'money_out', 'players_in', 'players_out'],
-            club_ids=[int(cid) for cid in result['matrices']['money_in'].columns],  # Convert to int!
+            # NEW: figures so we can update x_range factors
+            plots=[p_money_in, p_money_out, p_players_in, p_players_out],
+            # club_ids=[int(cid) for cid in result['matrices']['money_in'].columns],  # Convert to int!
             all_countries=all_countries,
-            club_display_names=[f"{club_id_to_name.get(cid, str(cid))} ({club_country_map.get(cid, 'Unknown')})" for cid in result['matrices']['money_in'].columns],
+            # NEW: club-mode-related data
+            club_mode_select=club_mode_select,
+            country_select=country_select,
+            top_club_ids=top_club_ids_int,
+            club_country_map_js=club_country_map_js,
+            club_display_map_js=club_display_map_js,
+            # club_display_names=[f"{club_id_to_name.get(cid, str(cid))} ({club_country_map.get(cid, 'Unknown')})" for cid in result['matrices']['money_in'].columns],
             # NEW: pass colorbars so we can update their color_mappers
             lin_cbs=[mi_lin_cb, mo_lin_cb, pi_lin_cb, po_lin_cb],
             log_cbs=[mi_log_cb, mo_log_cb, pi_log_cb, po_log_cb],
@@ -243,6 +294,59 @@ def build_dashboard():
         if (selected.length === 0) {
             selected = all_seasons;
         }
+        
+        // Decide which clubs are currently active
+        function getActiveClubs() {
+            let ids = [];
+        
+            if (club_mode_select.value === "Top 50") {
+                ids = top_club_ids.slice();
+        
+            } else {
+                const target = country_select.value;
+                console.log(target);
+        
+                // If no country is selected yet, don't wipe everything:
+                if (!target) {
+                    ids = top_club_ids.slice();
+                } else {
+                    for (const [id, country] of club_country_map_js) {
+                        if (country === target) {
+                            ids.push(Number(id));
+                        }
+                    }
+        
+                    // If, for some reason, nothing matched, fall back to Top 50
+                    if (ids.length === 0) {
+                        console.warn("No clubs found for country:", target,
+                                     "– falling back to Top 50.");
+                        ids = top_club_ids.slice();
+                    }
+                }
+            }
+        
+            // Sort nicely for display
+            ids.sort((a, b) => {
+                const na = (club_display_map_js[a] || "").toLowerCase();
+                const nb = (club_display_map_js[b] || "").toLowerCase();
+                if (na < nb) return -1;
+                if (na > nb) return 1;
+                return a - b;
+            });
+        
+            const labels = ids.map(id => club_display_map_js.get(id) || String(id));
+            return { ids, labels };
+        }
+        
+        const active = getActiveClubs();
+        const club_ids = active.ids;
+        const club_display_names = active.labels;
+        
+        // Update x_range factors of all plots to match active clubs
+        for (let i = 0; i < plots.length; i++) {
+            plots[i].x_range.factors = club_display_names;
+        }
+
                 
         // Function to aggregate matrices across selected seasons
         function aggregateSeasons(matrix_key) {
@@ -423,6 +527,8 @@ def build_dashboard():
     )
 
     season_select.js_on_change('value', season_callback)
+    club_mode_select.js_on_change('value', season_callback)
+    country_select.js_on_change('value', season_callback)
 
     # Create a debug div that will execute JavaScript to check season_data_js
     from bokeh.models import Div
@@ -439,8 +545,16 @@ def build_dashboard():
         <div style="display:none;">Debug div loaded</div>
     """, visible=False)
 
-    layout = column(mode_select, scale_select, season_select, money_layout, players_layout, debug_div)
-
+    layout = column(
+        mode_select,
+        scale_select,
+        season_select,
+        club_mode_select,
+        country_select,
+        money_layout,
+        players_layout,
+        debug_div
+    )
     output_file(OUTPUT_HTML, title="Club-Country Transfer Heatmaps")
     show(layout)
 

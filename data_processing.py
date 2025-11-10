@@ -49,6 +49,7 @@ def parse_fee(value):
     if isinstance(value, (int, float)):
         return float(value)
 
+    # Never used from this down
     s = str(value).strip()
     if not s:
         return 0.0
