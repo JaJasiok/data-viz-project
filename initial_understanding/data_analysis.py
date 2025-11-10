@@ -9,7 +9,7 @@ def load_data(file_path):
         return None
 
 # Load the data
-base_path = 'datasets/transfermarkt/'
+base_path = '../datasets/transfermarkt/'
 clubs = load_data(base_path + 'clubs.csv')
 competitions = load_data(base_path + 'competitions.csv')
 
