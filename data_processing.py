@@ -1,4 +1,5 @@
-import pandas as pd
+import pandas as pd 
+from unidecode import unidecode
 
 def load_data(file_path):
     try:
@@ -22,6 +23,62 @@ def preprocess_clubs(clubs, competitions):
     merged['country_name'] = merged['country_name'].fillna('Unknown')
     merged = merged.rename(columns={'country_name': 'club_country'})
     return merged
+
+def standardize_text(text):
+    """
+    Applies unidecode, converts to lowercase, and strips whitespace.
+    """
+    if pd.isna(text):
+        return text
+    return unidecode(str(text)).lower().strip()
+
+def preprocess_additional_clubs(additional_clubs, transfers):
+    """
+    Retrieve club ids from transfers for additional clubs data.
+    """
+    
+    df_from = transfers[['from_club_id', 'from_club_name']].drop_duplicates().rename(columns={
+        'from_club_id': 'club_id',
+        'from_club_name': 'club_name'
+    })
+    df_to = transfers[['to_club_id', 'to_club_name']].drop_duplicates().rename(columns={
+        'to_club_id': 'club_id',
+        'to_club_name': 'club_name'
+    })
+    
+    club_ids = pd.concat([df_from, df_to]).drop_duplicates(subset=['club_id'])
+    
+    print(f"Total unique clubs in transfers: {len(club_ids)}")
+    print(f"Total additional clubs before merge: {len(additional_clubs)}")
+    
+    # club_names = set(club_ids['club_name'].dropna().unique())
+    # print(club_names)
+    
+    club_ids['club_name_original'] = club_ids['club_name']
+    additional_clubs['club_name_original'] = additional_clubs['club_name']
+    
+    club_ids['club_name'] = club_ids['club_name'].apply(standardize_text)
+    additional_clubs['club_name'] = additional_clubs['club_name'].apply(standardize_text)
+    
+    merged = additional_clubs.merge(
+        club_ids,
+        on='club_name',
+        how='inner'
+    )
+    
+    merged['club_name'] = merged['club_name_original_y']
+    merged = merged.drop(columns=['club_name_original_x', 'club_name_original_y'])
+    
+    missing_clubs = set(additional_clubs['club_name']) - set(merged['club_name'])
+    print(missing_clubs)
+                        
+    merged = merged.rename(columns={'club_name': 'name'})
+    
+    print(f"Total merged clubs: {len(merged)}")
+        
+    return merged
+    
+    
 
 
 def build_top_clubs(games, clubs, top_n=50):

@@ -1,5 +1,5 @@
 club_name,country
-AS Vita Club,DR Congo
+AS Vita Club,Congo Dr
 Al Ahly,Egypt
 Al Mokawloon Al Arab,Egypt
 El Dakhleya,Egypt
@@ -107,7 +107,7 @@ FC Atyrau,Kazakhstan
 FC Zhetysu Taldykorgan,Kazakhstan
 FC Okzhetpes Kokshetau,Kazakhstan
 FC Kairat Almaty,Kazakhstan
-FC Alma-Ata,Kazakhstan
+FC Alma-Ata (2000-2008),Kazakhstan
 FC Kaysar Kyzylorda,Kazakhstan
 FC Taraz,Kazakhstan
 Al-Ittihad,Saudi Arabia
@@ -141,8 +141,8 @@ Up Rising FC,Anguilla
 Tempête FC,Haiti
 Valencia FC,Haiti
 Puerto Rico Islanders,Puerto Rico
-Caledonia AIA,Trinidad and Tobago
-W Connection,Trinidad and Tobago
+Caledonia AIA,Trinidad N Tobago
+W Connection,Trinidad N Tobago
 LD Alajuelense,Costa Rica
 Carmelita,Costa Rica
 CS Cartaginés,Costa Rica
@@ -214,20 +214,20 @@ FC Ordino,Andorra
 Inter Club d'Escaldes,Andorra
 FC Rànger's,Andorra
 FC Encamp,Andorra
-Constellació Esportiva,Andorra
-CE Principat,Andorra
+Constellació Esportiva (1998-2000),Andorra
+CE Principat (1989-2015),Andorra
 FC Yerevan,Armenia
 FC Ararat Yerevan,Armenia
 Ararat-Armenia FC,Armenia
-Kilikia FC,Armenia
-Zvartnots-AAL FC,Armenia
+Kilikia FC (1992-2011),Armenia
+Zvartnots-AAL FC (1997-2003),Armenia
 FC Pyunik,Armenia
 Ulisses FC,Armenia
 FC Mika,Armenia
 FC Gandzasar,Armenia
 FC Urartu,Armenia
 FC Shirak,Armenia
-Araks Ararat,Armenia
+Araks Ararat (-2005),Armenia
 Alashkert FC,Armenia
 FSC Lori,Armenia
 Artsakh FC,Armenia
@@ -334,7 +334,7 @@ Wolfsberger AC,Austria
 Wolfsberger AC II,Austria
 ATSV Wolfsberg,Austria
 Austria Klagenfurt,Austria
-Austria Kärnten,Austria
+Austria Kärnten (2007-2010),Austria
 SAK Klagenfurt,Austria
 Villacher SV,Austria
 SV Spittal/Drau,Austria
@@ -391,14 +391,14 @@ RW Rankweil,Austria
 SC Röthis,Austria
 Bakı FK,Azerbaijan
 İnter Bakı PİK,Azerbaijan
-FK Shafa Baku,Azerbaijan
+FK Shafa Baku (1997-2005),Azerbaijan
 Neftçi PFK,Azerbaijan
 Zirä FK,Azerbaijan
-FK Şämkir,Azerbaijan
+FK Şämkir (1954-2017),Azerbaijan
 Qarabağ FK,Azerbaijan
 Xäzär Länkäran FK,Azerbaijan
 Olimpik-Şüvälan PFK,Azerbaijan
-Simurq PFK,Azerbaijan
+Simurq PFK (2005-2015),Azerbaijan
 Gabala SC,Azerbaijan
 Keşla FK,Azerbaijan
 Käpäz PFK,Azerbaijan
@@ -407,12 +407,12 @@ Sumqayıt FK,Azerbaijan
 Sabah,Azerbaijan
 PFK Turan Tovuz,Azerbaijan
 FK MKT Araz,Azerbaijan
-Karvan FK,Azerbaijan
-Khazri Buzovna,Azerbaijan
+Karvan FK (2004-2014),Azerbaijan
+Khazri Buzovna (1994-1998),Azerbaijan
 FC BATE Borisov,Belarus
 FC Gomel,Belarus
 FC Dinamo Minsk,Belarus
-FC Dinamo-93 Minsk,Belarus
+FC Dinamo-93 Minsk (1992-1998),Belarus
 FC Partizan Minsk,Belarus
 FC Minsk,Belarus
 FC Dnepr Mogilev,Belarus
@@ -435,13 +435,13 @@ RWD Molenbeek,Belgium
 Saint-Gilloise,Belgium
 Royal Antwerp FC,Belgium
 K Beerschot VA,Belgium
-Germinal Beerschot,Belgium
-Beerschot VAC,Belgium
+Germinal Beerschot (1920-2013),Belgium
+Beerschot VAC (1899-1999),Belgium
 KV Mechelen,Belgium
 KVC Westerlo,Belgium
 K Lierse SK,Belgium
 KRC Genk,Belgium
-Waterschei Thor,Belgium
+Waterschei Thor (1919-1988),Belgium
 Sint-Truidense VV,Belgium
 Lommel United,Belgium
 KAA Gent,Belgium
@@ -455,7 +455,7 @@ Cercle Brugge,Belgium
 KV Kortrijk,Belgium
 KV Oostende,Belgium
 SV Zulte Waregem,Belgium
-KSV Waregem,Belgium
+KSV Waregem (1925-2001),Belgium
 Sporting Charleroi,Belgium
 Royal Excel Mouscron,Belgium
 RAEC Mons,Belgium
@@ -472,27 +472,27 @@ KSV Roeselare,Belgium
 RFC Seraing,Belgium
 AFC Tubize,Belgium
 Oud-Heverlee Leuven,Belgium
-FK Sarajevo,Bosnia and Herzegovina
-FK Slavija Sarajevo,Bosnia and Herzegovina
-FK Olimpic Sarajevo,Bosnia and Herzegovina
-FK Željezničar,Bosnia and Herzegovina
-HŠK Zrinjski,Bosnia and Herzegovina
-Velež Mostar,Bosnia and Herzegovina
-NK Široki Brijeg,Bosnia and Herzegovina
-FK Borac Banja Luka,Bosnia and Herzegovina
-FK Modriča,Bosnia and Herzegovina
-FK Sloboda Tuzla,Bosnia and Herzegovina
-FK Radnik Bijeljina,Bosnia and Herzegovina
-Sloga Simin Han,Bosnia and Herzegovina
-NK Čelik Zenica,Bosnia and Herzegovina
-FK Mladost Doboj Kakanj,Bosnia and Herzegovina
-FK Velež,Bosnia and Herzegovina
-Zvijezda 09,Bosnia and Herzegovina
-NK Brotnjo,Bosnia and Herzegovina
-FK Leotar,Bosnia and Herzegovina
-FK Budućnost Banovići,Bosnia and Herzegovina
-HNK Orašje,Bosnia and Herzegovina
-NK Žepče,Bosnia and Herzegovina
+FK Sarajevo,Bosnia N Herzegovina
+FK Slavija Sarajevo,Bosnia N Herzegovina
+FK Olimpic Sarajevo,Bosnia N Herzegovina
+FK Željezničar,Bosnia N Herzegovina
+HŠK Zrinjski,Bosnia N Herzegovina
+Velež Mostar,Bosnia N Herzegovina
+NK Široki Brijeg,Bosnia N Herzegovina
+FK Borac Banja Luka,Bosnia N Herzegovina
+FK Modriča,Bosnia N Herzegovina
+FK Sloboda Tuzla,Bosnia N Herzegovina
+FK Radnik Bijeljina,Bosnia N Herzegovina
+Sloga Simin Han,Bosnia N Herzegovina
+NK Čelik Zenica,Bosnia N Herzegovina
+FK Mladost Doboj Kakanj,Bosnia N Herzegovina
+FK Velež,Bosnia N Herzegovina
+Zvijezda 09,Bosnia N Herzegovina
+NK Brotnjo,Bosnia N Herzegovina
+FK Leotar,Bosnia N Herzegovina
+FK Budućnost Banovići,Bosnia N Herzegovina
+HNK Orašje,Bosnia N Herzegovina
+NK Žepče (1919-2010),Bosnia N Herzegovina
 PFC CSKA Sofia,Bulgaria
 PFC Levski Sofia,Bulgaria
 PFC Slavia Sofia,Bulgaria
@@ -508,7 +508,7 @@ PFC Cherno More Varna,Bulgaria
 FC Spartak Varna,Bulgaria
 PFC Ludogorets Razgrad,Bulgaria
 PFC Beroe Stara Zagora,Bulgaria
-PFC Lokomotiv Stara Zagora,Bulgaria
+PFC Lokomotiv Stara Zagora (1934-2009),Bulgaria
 PFC Montana,Bulgaria
 FC Pirin Blagoevgrad,Bulgaria
 FC Dunav Ruse,Bulgaria
@@ -518,10 +518,10 @@ Arda,Bulgaria
 FC Etar Veliko Tarnovo,Bulgaria
 Vitosha Bistritsa,Bulgaria
 OFC Sliven 2000,Bulgaria
-FC Sliven,Bulgaria
+FC Sliven (-2000),Bulgaria
 PFC Marek Dupnitsa,Bulgaria
 Neftochimik Burgas,Bulgaria
-FC Shumen 1929,Bulgaria
+FC Shumen 1929 (-2016),Bulgaria
 GNK Dinamo Zagreb,Croatia
 NK Lokomotiva Zagreb,Croatia
 NK Zagreb,Croatia
@@ -529,7 +529,7 @@ NK Trešnjevka Zagreb,Croatia
 NK Lučko Zagreb,Croatia
 NK Hrvatski Dragovoljac,Croatia
 NK Rudeš,Croatia
-NK Croatia Sesvete,Croatia
+NK Croatia Sesvete (1957-2012),Croatia
 HNK Hajduk Split,Croatia
 RNK Split,Croatia
 NK Slaven Belupo,Croatia
@@ -544,7 +544,7 @@ NK Inter Zaprešić,Croatia
 NK Karlovac,Croatia
 NK Zadar,Croatia
 NK Međimurje Čakovec,Croatia
-NK Kamen Ingrad,Croatia
+NK Kamen Ingrad (1929-2008),Croatia
 AC Omonia Nicosia,Cyprus
 APOEL Nicosia FC,Cyprus
 Olympiakos Nicosia FC,Cyprus
@@ -553,9 +553,9 @@ Apollon Limassol FC,Cyprus
 Karmiotissa Pano Polemidia,Cyprus
 Anorthosis Famagusta FC,Cyprus
 AEK Larnaca FC,Cyprus
-Pezoporikos Larnaca,Cyprus
-EPA Larnaca,Cyprus
-Alki Larnaca FC,Cyprus
+Pezoporikos Larnaca (1927-1994),Cyprus
+EPA Larnaca (1930-1994),Cyprus
+Alki Larnaca FC (1948-2014),Cyprus
 APOP/Kinyras Peyias FC,Cyprus
 Ermis Aradippou FC,Cyprus
 Ethnikos Achnas FC,Cyprus
@@ -582,7 +582,7 @@ FK Teplice,Czech Republic
 FC Zlín,Czech Republic
 FC Vysočina Jihlava,Czech Republic
 FC Zbrojovka Brno,Czech Republic
-FC LeRK Brno,Czech Republic
+FC LeRK Brno (1910-1995),Czech Republic
 MFK Karviná,Czech Republic
 SFC Opava,Czech Republic
 SK Dynamo České Budějovice,Czech Republic
@@ -591,10 +591,10 @@ FC Hradec Králové,Czech Republic
 MFK Vítkovice,Czech Republic
 1. SC Znojmo FK,Czech Republic
 SK Kladno,Czech Republic
-FK Drnovice,Czech Republic
+FK Drnovice (1932-2006),Czech Republic
 FC København,Denmark
-B 1903 København,Denmark
-KB København,Denmark
+B 1903 København (1903-1992),Denmark
+KB København (1876-1992),Denmark
 B93 København,Denmark
 BK Fremad Amager,Denmark
 Brønshøj BK,Denmark
@@ -610,7 +610,7 @@ Aalborg BK,Denmark
 Hobro IK,Denmark
 Vendsyssel FF,Denmark
 FC Midtjylland,Denmark
-Ikast FS,Denmark
+Ikast FS (1935-1999),Denmark
 AGF Aarhus,Denmark
 Viborg FF,Denmark
 AC Horsens,Denmark
@@ -625,8 +625,8 @@ Esbjerg fB,Denmark
 Vejle,Denmark
 FC Vestsjælland,Denmark
 HB Køge,Denmark
-Herfølge BK,Denmark
-Køge BK,Denmark
+Herfølge BK (1921-2009),Denmark
+Køge BK (1927-2009),Denmark
 Holbæk B&I,Denmark
 FC Fredericia,Denmark
 Skive IK,Denmark
@@ -641,7 +641,7 @@ Varde IF,Denmark
 Thisted FC,Denmark
 Viby IF,Denmark
 Hellerup IK,Denmark
-B 1901 Nykøbing,Denmark
+B 1901 Nykøbing (1901-1994),Denmark
 Arsenal FC,England
 Chelsea FC,England
 Tottenham Hotspur FC,England
@@ -661,7 +661,7 @@ Bromley FC,England
 Hayes & Yeading United FC,England
 Welling United FC,England
 Sutton United FC,England
-Thames AFC,England
+Thames AFC (1928-1932),England
 Everton FC,England
 Liverpool FC,England
 Blackburn Rovers FC,England
@@ -669,14 +669,14 @@ Burnley FC,England
 Blackpool FC,England
 Preston North End FC,England
 AFC Fylde,England
-Darwen FC,England
-Bootle FC,England
+Darwen FC (1870-2009),England
+Bootle FC (1879-1893),England
 Nelson FC,England
 Manchester United FC,England
 Manchester City FC,England
 Bolton Wanderers FC,England
 Wigan Athletic FC,England
-Wigan Borough FC,England
+Wigan Borough FC (1920-1931),England
 Atherton Collieries,England
 Oldham Athletic AFC,England
 Stockport County FC,England
@@ -700,7 +700,7 @@ Eastleigh FC,England
 Havant & Waterlooville FC,England
 Sunderland AFC,England
 Leicester City FC,England
-Loughborough FC,England
+Loughborough FC (1886-1900),England
 West Bromwich Albion FC,England
 Coventry City FC,England
 Wolverhampton Wanderers FC,England
@@ -710,11 +710,11 @@ Stafford Rangers FC,England
 Stourbridge FC,England
 York City FC,England
 Middlesbrough FC,England
-Middlesbrough Ironopolis FC,England
+Middlesbrough Ironopolis FC (1889-1894),England
 Scarborough Athletic FC,England
 Harrogate Town AFC,England
 Leeds United FC,England
-Leeds City FC,England
+Leeds City FC (1904-1919),England
 Bradford City AFC,England
 Bradford Park Avenue AFC,England
 Huddersfield Town AFC,England
@@ -727,15 +727,15 @@ Sheffield Wednesday FC,England
 Sheffield United FC,England
 Barnsley FC,England
 Rotherham United FC,England
-Rotherham County FC,England
-Rotherham Town FC,England
+Rotherham County FC (1870-1925),England
+Rotherham Town FC (1899-1925),England
 Doncaster Rovers FC,England
 Stoke City FC,England
 Port Vale FC,England
 Burton Albion FC,England
-Burton United FC,England
-Burton Swifts FC,England
-Burton Wanderers FC,England
+Burton United FC (1901-1910),England
+Burton Swifts FC (1871-1901),England
+Burton Wanderers FC (1871-1901),England
 Tamworth FC,England
 Derby County FC,England
 Norwich City FC,England
@@ -771,7 +771,7 @@ Bristol City FC,England
 Bristol Rovers FC,England
 Tranmere Rovers FC,England
 Southport FC,England
-New Brighton Tower FC,England
+New Brighton Tower FC (1898-1901),England
 Plymouth Argyle FC,England
 Exeter City FC,England
 Torquay United FC,England
@@ -799,7 +799,7 @@ Northampton Town FC,England
 AFC Rushden & Diamonds,England
 Kettering Town FC,England
 Shrewsbury Town FC,England
-Telford United FC,England
+Telford United FC (1872-2004),England
 AFC Telford United,England
 Chester FC,England
 Crewe Alexandra FC,England
@@ -807,19 +807,19 @@ Macclesfield Town FC,England
 Northwich Victoria FC,England
 Fleetwood Town FC,England
 Accrington Stanley FC,England
-Accrington FC,England
+Accrington FC (1878-1896),England
 Morecambe FC,England
 Chorley FC,England
-Hereford FC,England
-Hereford United FC,England
+Hereford FC (2014-),England
+Hereford United FC (1924-2014),England
 St. Albans City FC,England
 Boreham Wood FC,England
 Stevenage FC,England
 Hartlepool United FC,England
 Darlington FC,England
 Durham City AFC,England
-Salisbury City FC,England
-Salisbury FC,England
+Salisbury City FC (1947-2014),England
+Salisbury FC (2015-),England
 Nuneaton Borough FC,England
 Berwick Rangers,England
 FC Levadia Tallinn,Estonia
@@ -827,8 +827,8 @@ FC Flora Tallinn,Estonia
 FC TVMK Tallinn,Estonia
 FCI Tallinn,Estonia
 JK Tallinna Kalev,Estonia
-FC Norma Tallinn,Estonia
-FC Lantana Tallinn,Estonia
+FC Norma Tallinn (1959-1997),Estonia
+FC Lantana Tallinn (1994-1999),Estonia
 JK Trans Narva,Estonia
 JK Nõmme Kalju,Estonia
 JK Sillamäe Kalev,Estonia
@@ -843,7 +843,7 @@ B36 Tórshavn,Faroe Islands
 EB/Streymur,Faroe Islands
 NSÍ Runavík,Faroe Islands
 Víkingur,Faroe Islands
-GÍ Gøta,Faroe Islands
+GÍ Gøta (1926-2008),Faroe Islands
 ÍF Fuglafjørdur,Faroe Islands
 KÍ Klaksvík,Faroe Islands
 Skála ÍF,Faroe Islands
@@ -851,19 +851,19 @@ TB Tvøroyri,Faroe Islands
 AB Argir,Faroe Islands
 B68 Toftir,Faroe Islands
 FC Suðuroy,Faroe Islands
-VB Vágur,Faroe Islands
+VB Vágur (1905-2005),Faroe Islands
 B71 Sandoy,Faroe Islands
 HJK Helsinki,Finland
 HIFK Helsinki,Finland
 HPS Helsinki,Finland
-Finnairin Palloilijat Helsinki,Finland
-FC Jokerit,Finland
+Finnairin Palloilijat Helsinki (1965-1998),Finland
+FC Jokerit (1999-2004),Finland
 FC Haka Valkeakoski,Finland
 FC Inter Turku,Finland
 TPS Turku,Finland
 FC Honka Espoo,Finland
 KuPS Kuopio,Finland
-Koparit Kuopio,Finland
+Koparit Kuopio (1931-1990),Finland
 Myllykosken Pallo -47,Finland
 FC Lahti,Finland
 FC Kuusysi,Finland
@@ -890,7 +890,7 @@ FC Jazz,Finland
 AC Oulu,Finland
 OPS Oulu,Finland
 Mikkelin Palloilijat,Finland
-AC Vantaan Allianssi,Finland
+AC Vantaan Allianssi (2002-2006),Finland
 Paris Saint-Germain,France
 Paris FC,France
 Red Star FC,France
@@ -966,9 +966,9 @@ AS Béziers,France
 Angoulême-Soyaux Charente,France
 FC Dinamo Tbilisi,Georgia
 FC Locomotive Tbilisi,Georgia
-FC Ameri Tbilisi,Georgia
+FC Ameri Tbilisi (2002-2009),Georgia
 FC Zestafoni,Georgia
-FC Margveti Zestafoni,Georgia
+FC Margveti Zestafoni (1990-2000),Georgia
 FC Metalurgi Rustavi,Georgia
 FC Dila Gori,Georgia
 FC WIT Georgia,Georgia
@@ -1063,8 +1063,8 @@ FC Stahl Brandenburg,Germany
 Hertha BSC,Germany
 1. FC Union Berlin,Germany
 Tennis Borussia Berlin,Germany
-Blau-Weiß 90 Berlin,Germany
-SC Tasmania 1900 Berlin,Germany
+Blau-Weiß 90 Berlin (-1992),Germany
+SC Tasmania 1900 Berlin (-1973),Germany
 BFC Dynamo Berlin,Germany
 Berliner AK 07,Germany
 FC Viktoria 1889 Berlin,Germany
@@ -1126,11 +1126,11 @@ FC Schönberg 95,Germany
 FC Mecklenburg Schwerin,Germany
 Dynamo Dresden,Germany
 RB Leipzig,Germany
-VfB Leipzig,Germany
-1. FC Lokomotive Leipzig,Germany
+VfB Leipzig (-2004),Germany
+1. FC Lokomotive Leipzig (1966-1991),Germany
 BSG Chemie Leipzig,Germany
-FC Sachsen Leipzig,Germany
-SG Sachsen Leipzig,Germany
+FC Sachsen Leipzig (1990-2011),Germany
+SG Sachsen Leipzig (2011-2014),Germany
 Chemnitzer FC,Germany
 FC Erzgebirge Aue,Germany
 FSV Zwickau,Germany
@@ -1211,7 +1211,7 @@ MTK Budapest,Hungary
 Csepel SC,Hungary
 Budapesti VSC,Hungary
 Vác FC,Hungary
-Dunaújváros FC,Hungary
+Dunaújváros FC (1952-2009),Hungary
 Videoton FC,Hungary
 Debreceni VSC,Hungary
 Győri ETO FC,Hungary
@@ -1226,9 +1226,9 @@ Puskás Akadémia FC,Hungary
 Kaposvári Rákóczi FC,Hungary
 Salgótarjáni BTC,Hungary
 Pécsi MFC,Hungary
-FC Sopron,Hungary
+FC Sopron (1921-2008),Hungary
 Békéscsaba 1912 Előre,Hungary
-Pápai FC,Hungary
+Pápai FC (1995-2015),Hungary
 FC Tatabánya,Hungary
 BFC Siófok,Hungary
 Komlói Bányász SK,Hungary
@@ -1254,13 +1254,13 @@ St Patrick's Athletic FC,Ireland
 University College Dublin AFC,Ireland
 Shelbourne FC,Ireland
 Drumcondra FC,Ireland
-Dublin City FC,Ireland
+Dublin City FC (1999-2006),Ireland
 Athlone Town AFC,Ireland
 Bray Wanderers FC,Ireland
 Cobh Ramblers FC,Ireland
 Cork City FC,Ireland
-Cork Celtic FC,Ireland
-Cork Hibernians FC,Ireland
+Cork Celtic FC (1951-1979),Ireland
+Cork Hibernians FC (1957-1976),Ireland
 Drogheda United FC,Ireland
 Dundalk FC,Ireland
 Finn Harps FC,Ireland
@@ -1299,7 +1299,7 @@ Avellino,Italy
 Bari,Italy
 Brescia,Italy
 Carpi,Italy
-AC Cesena,Italy
+AC Cesena (1940-2018),Italy
 Cittadella,Italy
 Cremonese,Italy
 Empoli,Italy
@@ -1383,21 +1383,21 @@ KF Llapi,Kosovo
 KF Ferizaj,Kosovo
 Dukagjini,Kosovo
 Vushtrria,Kosovo
-FK RFS,Latvia
-Riga FC,Latvia
-FS METTA,Latvia
-FK LU/Daugava,Latvia
-FC Daugava Rīga,Latvia
-Skonto FC,Latvia
-FK Ventspils,Latvia
-FK Liepāja,Latvia
-SK Liepājas Metalurgs,Latvia
-FK Jelgava,Latvia
-FK Valmiera,Latvia
-FK Spartaks Jūrmala,Latvia
-FC Daugava Daugavpils,Latvia
-BFC Daugavpils,Latvia
-FC Dinaburg,Latvia
+FK RFS,Latvija
+Riga FC,Latvija
+FS METTA,Latvija
+FK LU/Daugava (1979-2000),Latvija
+FC Daugava Rīga (2003-2015),Latvija
+Skonto FC (1991-2006),Latvija
+FK Ventspils,Latvija
+FK Liepāja,Latvija
+SK Liepājas Metalurgs,Latvija
+FK Jelgava,Latvija
+FK Valmiera,Latvija
+FK Spartaks Jūrmala,Latvija
+FC Daugava Daugavpils,Latvija
+BFC Daugavpils,Latvija
+FC Dinaburg,Latvija
 FC Vaduz,Liechtenstein
 FC USV Eschen/Mauren,Liechtenstein
 FK Riteriai,Lithuania
@@ -1405,8 +1405,8 @@ VMFD Žalgiris,Lithuania
 FK Kauno Žalgiris,Lithuania
 FC Stumbras,Lithuania
 FBK Kaunas,Lithuania
-FK Kareda Kaunas,Lithuania
-FK Inkaras Kaunas,Lithuania
+FK Kareda Kaunas (1935-2003),Lithuania
+FK Inkaras Kaunas (1937-2003),Lithuania
 FK Ekranas,Lithuania
 FK Sūduva,Lithuania
 FK Tauras,Lithuania
@@ -1419,14 +1419,14 @@ Panevezys,Lithuania
 FK Palanga,Lithuania
 FK Mažeikiai,Lithuania
 Racing FC Union Lëtzebuerg,Luxembourg
-FC Aris Bonnevoie,Luxembourg
+FC Aris Bonnevoie (-2001),Luxembourg
 FC Avenir Beggen,Luxembourg
-Spora Luxemburg,Luxembourg
-Union Luxembourg,Luxembourg
+Spora Luxemburg (1923-2005),Luxembourg
+Union Luxembourg (1925-2005),Luxembourg
 F91 Dudelange,Luxembourg
-Stade Dudelange,Luxembourg
+Stade Dudelange (1913-1991),Luxembourg
 FC Differdange 03,Luxembourg
-Red Boys Differdange,Luxembourg
+Red Boys Differdange (1907-2003),Luxembourg
 Jeunesse d'Esch,Luxembourg
 CS Grevenmacher,Luxembourg
 UN Käerjéng 97,Luxembourg
@@ -1442,12 +1442,12 @@ FC Rodange 91,Luxembourg
 US Hostert,Luxembourg
 FC Mondercange,Luxembourg
 US Rumelange,Luxembourg
-CS Pétange,Luxembourg
+CS Pétange (1910-2015),Luxembourg
 FK Metalurg Skopje,Macedonia
 FK Makedonija Skopje,Macedonia
 FK Vardar,Macedonia
 FK Cementarnica 55,Macedonia
-Sloga Jugomagnat Skopje,Macedonia
+Sloga Jugomagnat Skopje (1927-2009),Macedonia
 FK Rabotnički,Macedonia
 FK Renova,Macedonia
 FK Shkëndija 79,Macedonia
@@ -1461,7 +1461,7 @@ Akademija Pandev,Macedonia
 FC Struga,Macedonia
 FK Borec Veles,Macedonia
 FK Pobeda,Macedonia
-FK Bashkimi Kumanovo,Macedonia
+FK Bashkimi Kumanovo (1947-2008),Macedonia
 FK Belasica,Macedonia
 Valletta FC,Malta
 Sliema Wanderers FC,Malta
@@ -1483,10 +1483,10 @@ Marsa FC,Malta
 Żurrieq FC,Malta
 FC Sheriff Tiraspol,Moldova
 FC Dinamo-Auto Tiraspol,Moldova
-CS Tiligul-Tiras Tiraspol,Moldova
+CS Tiligul-Tiras Tiraspol (1938-2009),Moldova
 FC Dacia Chișinău,Moldova
 FC Zimbru Chișinău,Moldova
-FC Veris,Moldova
+FC Veris (2011-2014),Moldova
 FC Iskra-Stal,Moldova
 FC Milsami Orhei,Moldova
 FC Olimpia Balti,Moldova
@@ -1500,7 +1500,7 @@ FC Codru,Moldova
 CS Petrocub Hîncești,Moldova
 AS Monaco,Monaco
 FK Budućnost Podgorica,Montenegro
-FK Mogren,Montenegro
+FK Mogren (1920-2016),Montenegro
 FK Zeta,Montenegro
 FK Rudar Pljevlja,Montenegro
 OFK Petrovac,Montenegro
@@ -1520,7 +1520,7 @@ FC Amsterdam,Netherlands
 AZ Alkmaar,Netherlands
 AZ Alkmaar II,Netherlands
 SC Telstar,Netherlands
-HFC Haarlem,Netherlands
+HFC Haarlem (1889-2010),Netherlands
 Feyenoord Rotterdam,Netherlands
 Sparta Rotterdam,Netherlands
 SBV Excelsior Rotterdam,Netherlands
@@ -1541,7 +1541,7 @@ Fortuna Sittard,Netherlands
 Roda JC Kerkrade,Netherlands
 VVV Venlo,Netherlands
 MVV Maastricht,Netherlands
-Rapid JC Heerlen,Netherlands
+Rapid JC Heerlen (1954-1962),Netherlands
 Go Ahead Eagles,Netherlands
 Heracles Almelo,Netherlands
 FC Twente,Netherlands
@@ -1655,7 +1655,7 @@ Polonia Bytom,Poland
 Szombierki Bytom,Poland
 Stal Mielec,Poland
 Dyskobolia Grodzisk Wielkopolski,Poland
-Amica Wrońki,Poland
+Amica Wrońki (1992-2007),Poland
 GKS Katowice,Poland
 Zagłębie Wałbrzych,Poland
 Odra Wodzisław,Poland
@@ -1683,6 +1683,7 @@ Rio Ave FC,Portugal
 SC Braga,Portugal
 CD Tondela,Portugal
 Académica de Coimbra,Portugal
+.,Portugal
 FC Arouca,Portugal
 FC Penafiel,Portugal
 SC Beira-Mar,Portugal
@@ -1718,7 +1719,7 @@ Rapid București,Romania
 Daco-Getica București,Romania
 Sportul Studenţesc Bucureşti,Romania
 AS Progresul București,Romania
-Victoria București,Romania
+Victoria București (1949-1990),Romania
 CFR Cluj,Romania
 U Cluj,Romania
 Astra Giurgiu,Romania
@@ -1729,7 +1730,7 @@ Gaz Metan Mediaș,Romania
 Gloria Bistrița,Romania
 FC Petrolul Ploiești,Romania
 FC Viitorul Constanța,Romania
-Corona Brașov,Romania
+Corona Brașov (2010-2014),Romania
 FC Brașov,Romania
 Dunărea Călărași,Romania
 Chindia Târgoviște,Romania
@@ -1744,7 +1745,7 @@ Pandurii Târgu Jiu,Romania
 FC Politehnica Iași,Romania
 Poli Timișoara,Romania
 Sepsi Sfântu Gheorghe,Romania
-ASA Târgu Mureș,Romania
+ASA Târgu Mureș (2008-2018),Romania
 Universitatea Craiova,Romania
 UTA Arad,Romania
 FC Voluntari,Romania
@@ -1755,10 +1756,10 @@ FC Argeș Pitești,Romania
 CS Minaur Baia Mare,Romania
 CSM Jiul Petroșani,Romania
 FCM Bacău,Romania
-Chimia Râmnicu Vâlcea,Romania
-Unirea Urziceni,Romania
-FC Corvinul Hunedoara,Romania
-FC Extensiv Craiova,Romania
+Chimia Râmnicu Vâlcea (1946-2004),Romania
+Unirea Urziceni (1954-2017),Romania
+FC Corvinul Hunedoara (1921-2004),Romania
+FC Extensiv Craiova (1949-2013),Romania
 Lokomotiv Moskva,Russia
 PFC CSKA Moskva,Russia
 Dynamo Moskva,Russia
@@ -1879,12 +1880,12 @@ OFK Beograd,Serbia
 FK Rad Belgrade,Serbia
 FK Čukarički,Serbia
 FK Bežanija,Serbia
-FK Obilić,Serbia
+FK Obilić (1924-2015),Serbia
 FK Vojvodina,Serbia
 FK Proleter Novi Sad,Serbia
 FK Spartak Zlatibor Voda,Serbia
 FK Sloboda Užice,Serbia
-FK Sevojno,Serbia
+FK Sevojno (1950-2010),Serbia
 FK Jagodina,Serbia
 FK Borac Čačak,Serbia
 FK Spartak Subotica,Serbia
@@ -1899,8 +1900,8 @@ FK Proleter,Serbia
 FK Radnik Surdulica,Serbia
 Macva Sabac,Serbia
 FK Smederevo,Serbia
-FK Banat Zrenjanin,Serbia
-FK Hajduk Kula,Serbia
+FK Banat Zrenjanin (2006-2016),Serbia
+FK Hajduk Kula (1925-2013),Serbia
 OFK Bečej 1918,Serbia
 ŠK Slovan Bratislava,Slovakia
 FK Inter Bratislava,Slovakia
@@ -1908,7 +1909,7 @@ FC Petržalka,Slovakia
 FC Spartak Trnava,Slovakia
 MŠK Žilina,Slovakia
 FK Senica,Slovakia
-MFK Košice,Slovakia
+MFK Košice (1952-2017),Slovakia
 FC Lokomotíva Košice,Slovakia
 Dukla Banská Bystrica,Slovakia
 FC Nitra,Slovakia
@@ -1924,7 +1925,7 @@ MFK Zemplín Michalovce,Slovakia
 FK Poprad,Slovakia
 MŠK Púchov,Slovakia
 1. FC Tatran Prešov,Slovakia
-FC Senec,Slovakia
+FC Senec (1994-2008),Slovakia
 NK Olimpija Ljubljana,Slovenia
 NK IB Ljubljana,Slovenia
 NK Maribor,Slovenia
@@ -1941,9 +1942,9 @@ NK Triglav,Slovenia
 NK Radomlje,Slovenia
 NK Nafta 1903,Slovenia
 NK Krško,Slovenia
-NK Primorje,Slovenia
+NK Primorje (1924-2011),Slovenia
 MNK Izola,Slovenia
-NK Izola,Slovenia
+NK Izola (1923-1996),Slovenia
 Atlético Madrid,Spain
 Atlético Madrid B,Spain
 Real Madrid,Spain
@@ -1994,7 +1995,7 @@ Sporting Gijón,Spain
 Albacete Balompié,Spain
 CD Guadalajara,Spain
 CD Badajoz,Spain
-CF Extremadura,Spain
+CF Extremadura (-2010),Spain
 Extremadura UD,Spain
 CP Mérida,Spain
 Burgos CF,Spain
@@ -2134,7 +2135,7 @@ Osmanlıspor Ankara,Turkey
 MKE Ankaragücü,Turkey
 Hacettepespor,Turkey
 Turanspor,Turkey
-Petrol Ofisi SK,Turkey
+Petrol Ofisi SK (1954-2010),Turkey
 Keçiörengücü,Turkey
 Kardemir Karabükspor,Turkey
 Elazığspor,Turkey
@@ -2173,7 +2174,7 @@ Kocaelispor,Turkey
 Sakaryaspor,Turkey
 Akçaabat Sebatspor,Turkey
 Yozgatspor,Turkey
-Erzurumspor,Turkey
+Erzurumspor (1968-2015),Turkey
 Siirtspor,Turkey
 Vanspor FK,Turkey
 Çanakkale Dardanelspor,Turkey
@@ -2204,9 +2205,9 @@ FC Metalurh Zaporizhya,Ukraine
 FC Kryvbas Kryvyi Rih,Ukraine
 NK Veres Rivne,Ukraine
 FC Zirka Kropyvnytskyi,Ukraine
-FC Stal Kamianske,Ukraine
-FC Hoverla Uzhhorod,Ukraine
-FC Sevastopol,Ukraine
+FC Stal Kamianske (1926-2018),Ukraine
+FC Hoverla Uzhhorod (1946-2016),Ukraine
+FC Sevastopol (2002-2014),Ukraine
 The New Saints FC,Wales
 Bangor City FC,Wales
 Llanelli AFC,Wales
@@ -2229,7 +2230,7 @@ Cardiff City FC,Wales
 Newport County AFC,Wales
 Wrexham AFC,Wales
 Merthyr Town FC,Wales
-Aberdare Athletic FC,Wales
+Aberdare Athletic FC (1893-1928),Wales
 Rhyl FC,Wales
 Cwmbrân Town AFC,Wales
 Prestatyn Town FC,Wales
@@ -2428,9 +2429,9 @@ Las Vegas Lights FC,United States
 Reno 1868 FC,United States
 New Mexico United,United States
 Phoenix Rising FC,United States
-Tampa Bay Mutiny,United States
-Miami Fusion,United States
-CD Chivas USA,United States
+Tampa Bay Mutiny (1996-2001),United States
+Miami Fusion (1998-2001),United States
+CD Chivas USA (2005-2014),United States
 Sydney FC,Australia
 Western Sydney Wanderers,Australia
 Central Coast Mariners,Australia

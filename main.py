@@ -10,7 +10,7 @@ from bokeh.layouts import column
 from bokeh.palettes import Viridis256
 
 from config import BASE_PATH, TOP_N_CLUBS, SELECTED_SEASONS, OUTPUT_HTML
-from data_processing import load_data, preprocess_clubs, build_top_clubs, build_transfer_enriched, \
+from data_processing import load_data, preprocess_clubs, preprocess_additional_clubs, build_top_clubs, build_transfer_enriched, \
     sort_seasons_chronologically, filter_transfers_by_seasons, ordered_rows
 from heatmap_factory import build_matrices_and_heatmaps, build_per_season_data
 
@@ -21,14 +21,16 @@ def build_dashboard():
     # Load data
     clubs = load_data(BASE_PATH + 'clubs.csv')
     competitions = load_data(BASE_PATH + 'competitions.csv')
+    additional_clubs = load_data('datasets/' + 'parsed_clubs_report.csv')
     transfers = load_data(BASE_PATH + 'transfers.csv')
     games = load_data(BASE_PATH + 'games.csv')
 
     if clubs is None or competitions is None or transfers is None or games is None:
         raise RuntimeError("Failed to load one or more datasets. Check file paths.")
 
-    clubs_enriched = preprocess_clubs(clubs, competitions)
-
+    # clubs_enriched = preprocess_clubs(clubs, competitions)
+    clubs_enriched = preprocess_additional_clubs(additional_clubs, transfers)
+    
     # Maps
     club_country_map = dict(
         zip(clubs_enriched['club_id'], clubs_enriched['club_country'])
