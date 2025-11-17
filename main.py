@@ -28,8 +28,8 @@ def build_dashboard():
     if clubs is None or competitions is None or transfers is None or games is None:
         raise RuntimeError("Failed to load one or more datasets. Check file paths.")
 
-    # clubs_enriched = preprocess_clubs(clubs, competitions)
-    clubs_enriched = preprocess_additional_clubs(additional_clubs, transfers)
+    # Combine both base clubs and additional parsed clubs
+    clubs_enriched = preprocess_additional_clubs(additional_clubs, transfers, clubs, competitions)
     
     # Maps
     club_country_map = dict(

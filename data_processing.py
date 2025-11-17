@@ -32,11 +32,27 @@ def standardize_text(text):
         return text
     return unidecode(str(text)).lower().strip()
 
-def preprocess_additional_clubs(additional_clubs, transfers):
+def preprocess_additional_clubs(additional_clubs, transfers, clubs_base, competitions):
     """
-    Retrieve club ids from transfers for additional clubs data.
+    Combine clubs from both the base clubs dataset and the additional parsed clubs.
+    Returns a unified dataset with club_id, name, and club_country.
     """
     
+    # First, get base clubs with country info
+    comp_country = competitions[['competition_id', 'country_name']].drop_duplicates()
+    clubs_with_country = clubs_base.merge(
+        comp_country,
+        left_on='domestic_competition_id',
+        right_on='competition_id',
+        how='left'
+    )
+    clubs_with_country['country_name'] = clubs_with_country['country_name'].fillna('Unknown')
+    clubs_with_country = clubs_with_country.rename(columns={'country_name': 'club_country'})
+    
+    # Select and rename columns to match expected format
+    base_clubs_processed = clubs_with_country[['club_id', 'name', 'club_country']].copy()
+    
+    # Now process additional clubs
     df_from = transfers[['from_club_id', 'from_club_name']].drop_duplicates().rename(columns={
         'from_club_id': 'club_id',
         'from_club_name': 'club_name'
@@ -48,38 +64,31 @@ def preprocess_additional_clubs(additional_clubs, transfers):
     
     club_ids = pd.concat([df_from, df_to]).drop_duplicates(subset=['club_id'])
     
-    print(f"Total unique clubs in transfers: {len(club_ids)}")
-    print(f"Total additional clubs before merge: {len(additional_clubs)}")
-    
-    # club_names = set(club_ids['club_name'].dropna().unique())
-    # print(club_names)
-    
     club_ids['club_name_original'] = club_ids['club_name']
     additional_clubs['club_name_original'] = additional_clubs['club_name']
     
     club_ids['club_name'] = club_ids['club_name'].apply(standardize_text)
     additional_clubs['club_name'] = additional_clubs['club_name'].apply(standardize_text)
     
-    merged = additional_clubs.merge(
+    additional_merged = additional_clubs.merge(
         club_ids,
         on='club_name',
         how='inner'
     )
     
-    merged['club_name'] = merged['club_name_original_y']
-    merged = merged.drop(columns=['club_name_original_x', 'club_name_original_y'])
+    additional_merged['club_name'] = additional_merged['club_name_original_y']
+    additional_merged = additional_merged.drop(columns=['club_name_original_x', 'club_name_original_y'])
+    additional_merged = additional_merged.rename(columns={'club_name': 'name'})
     
-    missing_clubs = set(additional_clubs['club_name']) - set(merged['club_name'])
-    print(missing_clubs)
-                        
-    merged = merged.rename(columns={'club_name': 'name'})
+    # Select columns to match base format
+    additional_clubs_processed = additional_merged[['club_id', 'name', 'club_country']].copy()
     
-    print(f"Total merged clubs: {len(merged)}")
-        
-    return merged
+    # Combine both datasets, removing duplicates (base clubs take precedence)
+    combined = pd.concat([base_clubs_processed, additional_clubs_processed], ignore_index=True)
+    combined = combined.drop_duplicates(subset=['club_id'], keep='first')
+            
+    return combined
     
-    
-
 
 def build_top_clubs(games, clubs, top_n=50):
     """
@@ -93,7 +102,6 @@ def build_top_clubs(games, clubs, top_n=50):
     known_ids = set(clubs['club_id'])
     top_club_ids = [cid for cid in top_club_ids if cid in known_ids]
     return top_club_ids
-
 
 def parse_fee(value):
     """

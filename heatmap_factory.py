@@ -121,6 +121,17 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
     # y factors top -> bottom
     y_factors = list(rows)[::-1]
 
+    # Calculate dimensions to make each cell square
+    num_cols = len(display_cols)
+    num_rows = len(y_factors)
+    cell_size = 30  # pixels per cell (adjust as needed)
+    plot_width = num_cols * cell_size
+    plot_height = num_rows * cell_size
+    
+    # Set minimum and maximum dimensions
+    plot_width = max(600, min(plot_width, 2400))
+    plot_height = max(300, min(plot_height, 1200))
+
     p = figure(
         title=title,
         x_range=display_cols,
@@ -128,8 +139,8 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
         x_axis_location='above',
         tools='hover,save,reset,pan,wheel_zoom,box_zoom',
         toolbar_location='right',
-        width=1600,
-        height=600
+        width=plot_width,
+        height=plot_height
     )
 
     # --- rects: absolute (linear) ---
