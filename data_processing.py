@@ -175,3 +175,158 @@ def sort_seasons_chronologically(seasons):
             return 9999
 
     return sorted(seasons, key=season_sort_key)
+
+
+def calculate_team_statistics(club_ids, games, transfers_enriched, selected_seasons=None):
+    """
+    Calculate statistics for each club in the provided list:
+    - Total games played
+    - Games won
+    - Win percentage
+    - Total money spent (incoming transfers)
+    - Total money earned (outgoing transfers)
+    
+    Args:
+        club_ids: List of club IDs to calculate stats for
+        games: DataFrame with game data
+        transfers_enriched: DataFrame with transfer data (including fee_eur)
+        selected_seasons: List of seasons to filter by in 'YY/YY' format (None = all seasons)
+    
+    Returns:
+        DataFrame with columns: club_id, games_played, games_won, win_pct, 
+                                money_spent, money_earned
+    """
+    results = []
+    
+    # Convert season format from 'YY/YY' to year for games filtering
+    # E.g., '20/21' -> 2020
+    games_years = None
+    if selected_seasons and len(selected_seasons) > 0:
+        games_years = []
+        for season in selected_seasons:
+            try:
+                year_str = season.split('/')[0]
+                year = int(year_str)
+                # Handle century transition (90-99 = 1990s, 00-89 = 2000s+)
+                if year >= 90:
+                    games_years.append(1900 + year)
+                else:
+                    games_years.append(2000 + year)
+            except (ValueError, IndexError):
+                pass
+    
+    # Filter games by year if specified
+    games_filtered = games.copy()
+    if games_years:
+        games_filtered = games_filtered[games_filtered['season'].isin(games_years)]
+    
+    # Filter transfers by season if specified
+    transfers_filtered = transfers_enriched.copy()
+    if selected_seasons and len(selected_seasons) > 0:
+        transfers_filtered = filter_transfers_by_seasons(transfers_filtered, selected_seasons)
+    
+    for club_id in club_ids:
+        # Calculate games statistics
+        home_games = games_filtered[games_filtered['home_club_id'] == club_id]
+        away_games = games_filtered[games_filtered['away_club_id'] == club_id]
+        
+        # Count wins
+        home_wins = len(home_games[home_games['home_club_goals'] > home_games['away_club_goals']])
+        away_wins = len(away_games[away_games['away_club_goals'] > away_games['home_club_goals']])
+        total_wins = home_wins + away_wins
+        
+        # Total games
+        total_games = len(home_games) + len(away_games)
+        
+        # Win percentage
+        win_pct = (total_wins / total_games * 100) if total_games > 0 else 0
+        
+        # Calculate transfer spending (money IN - buying players)
+        money_spent = transfers_filtered[
+            transfers_filtered['to_club_id'] == club_id
+        ]['fee_eur'].sum()
+        
+        # Calculate transfer earnings (money OUT - selling players)
+        money_earned = transfers_filtered[
+            transfers_filtered['from_club_id'] == club_id
+        ]['fee_eur'].sum()
+        
+        results.append({
+            'club_id': club_id,
+            'games_played': total_games,
+            'games_won': total_wins,
+            'win_pct': round(win_pct, 2),
+            'money_spent': money_spent,
+            'money_earned': money_earned
+        })
+    
+    return pd.DataFrame(results)
+
+
+def calculate_per_season_statistics(club_id, games, transfers_enriched, seasons):
+    """
+    Calculate statistics for a single club broken down by season.
+    
+    Args:
+        club_id: The club ID to calculate stats for
+        games: DataFrame with game data
+        transfers_enriched: DataFrame with transfer data (including fee_eur)
+        seasons: List of seasons in 'YY/YY' format to include
+    
+    Returns:
+        DataFrame with columns: season, games_played, games_won, win_pct, 
+                                money_spent, money_earned
+    """
+    results = []
+    
+    for season in seasons:
+        # Convert season format from 'YY/YY' to year for games filtering
+        try:
+            year_str = season.split('/')[0]
+            year = int(year_str)
+            if year >= 90:
+                game_year = 1900 + year
+            else:
+                game_year = 2000 + year
+        except (ValueError, IndexError):
+            continue
+        
+        # Filter games for this season
+        season_games = games[games['season'] == game_year]
+        home_games = season_games[season_games['home_club_id'] == club_id]
+        away_games = season_games[season_games['away_club_id'] == club_id]
+        
+        # Count wins
+        home_wins = len(home_games[home_games['home_club_goals'] > home_games['away_club_goals']])
+        away_wins = len(away_games[away_games['away_club_goals'] > away_games['home_club_goals']])
+        total_wins = home_wins + away_wins
+        
+        # Total games
+        total_games = len(home_games) + len(away_games)
+        
+        # Win percentage
+        win_pct = (total_wins / total_games * 100) if total_games > 0 else 0
+        
+        # Filter transfers for this season
+        season_transfers = transfers_enriched[transfers_enriched['transfer_season'] == season]
+        
+        # Calculate transfer spending (money IN - buying players)
+        money_spent = season_transfers[
+            season_transfers['to_club_id'] == club_id
+        ]['fee_eur'].sum()
+        
+        # Calculate transfer earnings (money OUT - selling players)
+        money_earned = season_transfers[
+            season_transfers['from_club_id'] == club_id
+        ]['fee_eur'].sum()
+        
+        results.append({
+            'season': season,
+            'games_played': total_games,
+            'games_won': total_wins,
+            'win_pct': round(win_pct, 2),
+            'money_spent': money_spent,
+            'money_earned': money_earned
+        })
+    
+    return pd.DataFrame(results)

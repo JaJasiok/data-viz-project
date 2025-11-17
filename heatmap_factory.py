@@ -16,7 +16,7 @@ from matrix_builders import money_in_matrix, money_out_matrix, column_percentage
 # ---------- BOKEH HEATMAP FACTORY ----------
 def make_heatmap(matrix, title, club_id_to_name, club_country_map,
                  palette=Viridis256, value_label='Value',
-                 pct_matrix=None, is_money=False):
+                 pct_matrix=None, is_money=False, enable_tap=False):
     """
     Build heatmap with:
       - linear + optional log layers for absolute values
@@ -121,12 +121,16 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
     # y factors top -> bottom
     y_factors = list(rows)[::-1]
 
+    tools_list = 'hover,save,reset,pan,wheel_zoom,box_zoom'
+    if enable_tap:
+        tools_list = 'hover,tap,save,reset,pan,wheel_zoom,box_zoom'
+    
     p = figure(
         title=title,
         x_range=display_cols,
         y_range=y_factors,
         x_axis_location='above',
-        tools='hover,save,reset,pan,wheel_zoom,box_zoom',
+        tools=tools_list,
         toolbar_location='right',
         width=1600,
         height=600
@@ -376,7 +380,8 @@ def build_matrices_and_heatmaps(top_club_ids, transfers_enriched, club_id_to_nam
         palette=Viridis256,
         value_label='Received (€)',
         pct_matrix=mat_money_out_pct,
-        is_money=True
+        is_money=True,
+        enable_tap=True
     )
 
     # Players (with percentage layers)
