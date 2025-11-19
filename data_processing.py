@@ -103,6 +103,21 @@ def build_top_clubs(games, clubs, top_n=50):
     top_club_ids = [cid for cid in top_club_ids if cid in known_ids]
     return top_club_ids
 
+def build_top_spenders(transfers, clubs, top_n=50):
+    """
+    Determine top N clubs by total transfer fees spent.
+    """
+    transfers_enriched = transfers.copy()
+    transfers_enriched['fee_eur'] = transfers_enriched['transfer_fee'].apply(parse_fee)
+    
+    spend_per_club = transfers_enriched.groupby('to_club_id')['fee_eur'].sum()
+    top_spenders = spend_per_club.sort_values(ascending=False).head(top_n)
+    
+    known_ids = set(clubs['club_id'])
+    top_spender_ids = [cid for cid in top_spenders.index.tolist() if cid in known_ids]
+    
+    return top_spender_ids
+
 def parse_fee(value):
     """
     Convert Transfermarkt-like transfer_fee strings to numeric EUR.

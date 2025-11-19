@@ -11,7 +11,7 @@ from bokeh.palettes import Viridis256
 
 from config import BASE_PATH, TOP_N_CLUBS, SELECTED_SEASONS, OUTPUT_HTML
 from data_processing import load_data, preprocess_clubs, preprocess_additional_clubs, build_top_clubs, build_transfer_enriched, \
-    sort_seasons_chronologically, filter_transfers_by_seasons, ordered_rows
+    sort_seasons_chronologically, filter_transfers_by_seasons, ordered_rows, build_top_spenders
 from heatmap_factory import build_matrices_and_heatmaps, build_per_season_data
 
 
@@ -40,7 +40,8 @@ def build_dashboard():
     )
 
     # Top clubs by games played
-    top_club_ids = build_top_clubs(games, clubs_enriched, top_n=TOP_N_CLUBS)
+    # top_club_ids = build_top_clubs(games, clubs_enriched, top_n=TOP_N_CLUBS)
+    top_club_ids = build_top_spenders(transfers, clubs_enriched, top_n=TOP_N_CLUBS)
 
     # Enrich transfers with numeric fees and country buckets
     transfers_enriched = build_transfer_enriched(transfers, club_country_map)
