@@ -4,7 +4,7 @@ from bokeh.plotting import figure
 from bokeh.models import (
     ColumnDataSource, LinearColorMapper, ColorBar, BasicTicker,
     HoverTool, Select, CustomJS, Span, LogColorMapper, CustomJSTickFormatter,
-    MultiChoice, Div
+    MultiChoice, Div, CheckboxButtonGroup
 )
 from bokeh.layouts import column
 from bokeh.palettes import Viridis256
@@ -12,7 +12,7 @@ from bokeh.palettes import Viridis256
 from config import BASE_PATH, TOP_N_CLUBS, SELECTED_SEASONS, OUTPUT_HTML
 from data_processing import load_data, preprocess_clubs, build_top_clubs, build_transfer_enriched, \
     sort_seasons_chronologically, filter_transfers_by_seasons, ordered_rows, calculate_team_statistics, \
-    calculate_per_season_statistics
+    calculate_per_season_statistics, build_top_spenders
 from heatmap_factory import build_matrices_and_heatmaps, build_per_season_data
 
 
@@ -40,12 +40,13 @@ def build_dashboard():
 
     # Top clubs by games played
     top_club_ids = build_top_clubs(games, clubs_enriched, top_n=TOP_N_CLUBS)
+    # top_club_ids = build_top_spenders(transfers, clubs_enriched, top_n=TOP_N_CLUBS)
 
     # Enrich transfers with numeric fees and country buckets
     transfers_enriched = build_transfer_enriched(transfers, club_country_map)
 
     # Get unique seasons sorted chronologically
-    all_seasons = sort_seasons_chronologically(transfers_enriched['transfer_season'].dropna().unique().tolist())
+    all_seasons = sort_seasons_chronologically(transfers_enriched['transfer_season'].dropna().unique().tolist(), '10/11')
 
     # Apply season filter if configured
     if SELECTED_SEASONS and len(SELECTED_SEASONS) > 0:
@@ -75,14 +76,17 @@ def build_dashboard():
     money_layout = column(p_money_in, p_money_out)
     players_layout = column(p_players_in, p_players_out)
     players_layout.visible = False  # start with Money
+    
+    season_title = Div(text="Seasons")
 
     # Season filter widget - shows which seasons are included
-    season_select = MultiChoice(
-        title="Seasons",
-        value=selected_seasons_display,
-        options=all_seasons,
-        width=600
+    season_select = CheckboxButtonGroup(
+        labels=all_seasons,
+        active=[i for i, s in enumerate(all_seasons) if s in selected_seasons_display],
+        width=800
     )
+    
+    season_widget_group = column(season_title, season_select)
 
     # Pre-compute per-season aggregated data for ALL clubs
     all_club_ids = clubs_enriched['club_id'].dropna().unique().tolist()
@@ -339,6 +343,7 @@ def build_dashboard():
             team_stats_layout=team_stats_layout,
             p_team_stats=p_team_stats,
             season_select=season_select,
+            all_seasons=all_seasons,
             mi_source=mi_source,
             mo_source=mo_source,
             pi_source=pi_source,
@@ -416,7 +421,8 @@ def build_dashboard():
         }}
         
         // Get selected seasons
-        const selectedSeasons = season_select.value;
+        const selectedIndices = season_select.active;
+        const selectedSeasons = selectedIndices.map(i => all_seasons[i]);
         console.log('Selected seasons:', selectedSeasons);
         
         const stats = perSeasonStats[clubId];
@@ -433,6 +439,8 @@ def build_dashboard():
             p_team_stats.x_range.factors = [];
             return;
         }}
+        
+        console.log('Selected seasons:', selectedSeasons);
         
         // Prepare data for chart (convert money to millions, keep win% as is)
         const seasons = filteredStats.map(s => s.season);
@@ -512,6 +520,7 @@ def build_dashboard():
             team_stats_layout=team_stats_layout,
             p_team_stats=p_team_stats,
             season_select=season_select,
+            all_seasons=all_seasons,
             club_mode_select=club_mode_select,
             country_select=country_select
         ),
@@ -551,7 +560,8 @@ def build_dashboard():
         }}
         
         // Get selected seasons
-        const selectedSeasons = season_select.value;
+        const selectedIndices = season_select.active;
+        const selectedSeasons = selectedIndices.map(i => all_seasons[i]);
         const stats = perSeasonStats[clubId];
         
         if (!stats) {{
@@ -688,7 +698,9 @@ def build_dashboard():
         const season_data_js = JSON.parse(season_data_json_string);
         
         // Get selected seasons (if empty, use all)
-        let selected = season_select.value;
+        const selectedIndices = season_select.active;
+        let selected = selectedIndices.map(i => all_seasons[i]);
+        
         if (selected.length === 0) {
             selected = all_seasons;
         }
@@ -924,8 +936,8 @@ def build_dashboard():
                 """
     )
 
-    season_select.js_on_change('value', season_callback)
-    season_select.js_on_change('value', update_team_stats_callback)
+    season_select.js_on_change('active', season_callback)
+    season_select.js_on_change('active', update_team_stats_callback)
     club_mode_select.js_on_change('value', season_callback)
     country_select.js_on_change('value', season_callback)
     country_select.js_on_change('value', update_team_stats_callback)
@@ -947,7 +959,7 @@ def build_dashboard():
     layout = column(
         mode_select,
         scale_select,
-        season_select,
+        season_widget_group,
         club_mode_select,
         country_select,
         money_layout,

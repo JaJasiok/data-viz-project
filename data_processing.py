@@ -37,6 +37,20 @@ def build_top_clubs(games, clubs, top_n=50):
     top_club_ids = [cid for cid in top_club_ids if cid in known_ids]
     return top_club_ids
 
+def build_top_spenders(transfers, clubs, top_n=50):
+    """
+    Determine top N clubs by total transfer fees spent.
+    """
+    transfers_enriched = transfers.copy()
+    transfers_enriched['fee_eur'] = transfers_enriched['transfer_fee'].apply(parse_fee)
+    
+    spend_per_club = transfers_enriched.groupby('to_club_id')['fee_eur'].sum()
+    top_spenders = spend_per_club.sort_values(ascending=False).head(top_n)
+    
+    known_ids = set(clubs['club_id'])
+    top_spender_ids = [cid for cid in top_spenders.index.tolist() if cid in known_ids]
+    
+    return top_spender_ids
 
 def parse_fee(value):
     """
@@ -153,10 +167,14 @@ def ordered_rows(index, extras=('Without Club', 'Retired')):
     return core + tail
 
 
-def sort_seasons_chronologically(seasons):
+def sort_seasons_chronologically(seasons, cutoff_season=None):
     """
     Sort seasons in 'YY/YY' format chronologically.
     E.g., ['98/99', '99/00', ..., '09/10', '10/11', ..., '25/26']
+    
+    Args:
+        seasons: List of season strings
+        cutoff_season: If provided, omit seasons chronologically before this season.
     """
 
     def season_sort_key(season):
@@ -173,8 +191,14 @@ def sort_seasons_chronologically(seasons):
         except (ValueError, IndexError):
             # If parsing fails, return a high value to put it at the end
             return 9999
-
-    return sorted(seasons, key=season_sort_key)
+            
+    sorted_seasons = sorted(seasons, key=season_sort_key)
+    
+    if cutoff_season:
+        cutoff_val = season_sort_key(cutoff_season)
+        sorted_seasons = [s for s in sorted_seasons if season_sort_key(s) >= cutoff_val]
+        
+    return sorted_seasons
 
 
 def calculate_team_statistics(club_ids, games, transfers_enriched, selected_seasons=None):
