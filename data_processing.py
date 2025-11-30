@@ -196,7 +196,7 @@ def sort_seasons_chronologically(seasons, cutoff_season=None):
     
     if cutoff_season:
         cutoff_val = season_sort_key(cutoff_season)
-        sorted_seasons = [s for s in sorted_seasons if season_sort_key(s) >= cutoff_val]
+        sorted_seasons = [s for s in sorted_seasons if season_sort_key(s) >= cutoff_val and season_sort_key(s) <= season_sort_key("24/25")]
         
     return sorted_seasons
 
@@ -287,24 +287,35 @@ def calculate_team_statistics(club_ids, games, transfers_enriched, selected_seas
     return pd.DataFrame(results)
 
 
-def calculate_per_season_statistics(club_id, games, transfers_enriched, seasons):
+def calculate_per_season_statistics(club_id, games, competitions, transfers_enriched, seasons):
     """
     Calculate statistics for a single club broken down by season.
-    
-    Args:
-        club_id: The club ID to calculate stats for
-        games: DataFrame with game data
-        transfers_enriched: DataFrame with transfer data (including fee_eur)
-        seasons: List of seasons in 'YY/YY' format to include
-    
-    Returns:
-        DataFrame with columns: season, games_played, games_won, win_pct, 
-                                money_spent, money_earned
+
+    Includes per-competition breakdown for:
+      - domestic_league
+      - domestic_cup
+      - international_cup
+
+    `games` has only competition_id; we join with `competitions` (which has 'type')
+    to obtain the competition type per game.
     """
+    # Attach competition "type" (e.g. domestic_league, domestic_cup, international_cup)
+    games_with_type = games.copy()
+    if (
+        'competition_id' in games.columns
+        and 'competition_id' in competitions.columns
+        and 'type' in competitions.columns
+    ):
+        comp_types = competitions[['competition_id', 'type']].drop_duplicates()
+        games_with_type = games.merge(comp_types, on='competition_id', how='left')
+    else:
+        # Fallback: no usable 'type' information; everything will be treated as "overall"
+        games_with_type['type'] = None
+
     results = []
-    
+
     for season in seasons:
-        # Convert season format from 'YY/YY' to year for games filtering
+        # Convert 'YY/YY' to a numeric year matching your games.season
         try:
             year_str = season.split('/')[0]
             year = int(year_str)
@@ -314,43 +325,83 @@ def calculate_per_season_statistics(club_id, games, transfers_enriched, seasons)
                 game_year = 2000 + year
         except (ValueError, IndexError):
             continue
-        
-        # Filter games for this season
-        season_games = games[games['season'] == game_year]
+
+        # Filter games for this season (using the merged frame)
+        season_games = games_with_type[games_with_type['season'] == game_year]
+
+        # --- overall stats ---
         home_games = season_games[season_games['home_club_id'] == club_id]
         away_games = season_games[season_games['away_club_id'] == club_id]
-        
-        # Count wins
+
         home_wins = len(home_games[home_games['home_club_goals'] > home_games['away_club_goals']])
         away_wins = len(away_games[away_games['away_club_goals'] > away_games['home_club_goals']])
         total_wins = home_wins + away_wins
-        
-        # Total games
+
         total_games = len(home_games) + len(away_games)
-        
-        # Win percentage
-        win_pct = (total_wins / total_games * 100) if total_games > 0 else 0
-        
+        win_pct = (total_wins / total_games * 100) if total_games > 0 else 0.0
+
+        # --- per-competition stats, based on competitions.type ---
+
+        def competition_stats(comp_type_value):
+            """
+            Compute games / wins / win% for a given competitions.type value.
+            Expects values like 'domestic_league', 'domestic_cup', 'international_cup'.
+            """
+            comp_games = season_games[season_games['type'] == comp_type_value]
+
+            h = comp_games[comp_games['home_club_id'] == club_id]
+            a = comp_games[comp_games['away_club_id'] == club_id]
+
+            h_w = len(h[h['home_club_goals'] > h['away_club_goals']])
+            a_w = len(a[a['away_club_goals'] > a['home_club_goals']])
+            wins = h_w + a_w
+
+            games_played = len(h) + len(a)
+            pct = (wins / games_played * 100) if games_played > 0 else 0.0
+            return games_played, wins, pct
+
+        has_type_info = 'type' in season_games.columns and season_games['type'].notna().any()
+
+        if has_type_info:
+            g_league, w_league, pct_league = competition_stats('domestic_league')
+            g_cup, w_cup, pct_cup = competition_stats('domestic_cup')
+            g_int, w_int, pct_int = competition_stats('international_cup')
+        else:
+            # If we don't have any type info, mirror the overall stats
+            g_league = g_cup = g_int = total_games
+            w_league = w_cup = w_int = total_wins
+            pct_league = pct_cup = pct_int = win_pct
+
         # Filter transfers for this season
         season_transfers = transfers_enriched[transfers_enriched['transfer_season'] == season]
-        
+
         # Calculate transfer spending (money IN - buying players)
         money_spent = season_transfers[
             season_transfers['to_club_id'] == club_id
         ]['fee_eur'].sum()
-        
+
         # Calculate transfer earnings (money OUT - selling players)
         money_earned = season_transfers[
             season_transfers['from_club_id'] == club_id
         ]['fee_eur'].sum()
-        
+
         results.append({
             'season': season,
             'games_played': total_games,
             'games_won': total_wins,
             'win_pct': round(win_pct, 2),
             'money_spent': money_spent,
-            'money_earned': money_earned
+            'money_earned': money_earned,
+            # per-competition breakdown
+            'games_played_league': g_league,
+            'games_won_league': w_league,
+            'win_pct_league': round(pct_league, 2),
+            'games_played_domestic_cup': g_cup,
+            'games_won_domestic_cup': w_cup,
+            'win_pct_domestic_cup': round(pct_cup, 2),
+            'games_played_international_cup': g_int,
+            'games_won_international_cup': w_int,
+            'win_pct_international_cup': round(pct_int, 2),
         })
-    
+
     return pd.DataFrame(results)

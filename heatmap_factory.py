@@ -121,9 +121,9 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
     # y factors top -> bottom
     y_factors = list(rows)[::-1]
 
-    tools_list = 'hover,save,reset,pan,wheel_zoom,box_zoom'
+    tools_list = 'hover,save,reset,pan,box_zoom'
     if enable_tap:
-        tools_list = 'hover,tap,save,reset,pan,wheel_zoom,box_zoom'
+        tools_list = 'hover,tap,save,reset,pan,box_zoom'
     
     p = figure(
         title=title,
