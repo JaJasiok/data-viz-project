@@ -6,7 +6,7 @@ from bokeh.models import (
     HoverTool, Select, CustomJS, Span, LogColorMapper, CustomJSTickFormatter,
     MultiChoice, Div, CheckboxButtonGroup
 )
-from bokeh.layouts import column
+from bokeh.layouts import column, row, Spacer
 from bokeh.palettes import Viridis256
 
 from config import BASE_PATH, TOP_N_CLUBS, SELECTED_SEASONS, OUTPUT_HTML
@@ -46,7 +46,7 @@ def build_dashboard():
     transfers_enriched = build_transfer_enriched(transfers, club_country_map)
 
     # Get unique seasons sorted chronologically
-    all_seasons = sort_seasons_chronologically(transfers_enriched['transfer_season'].dropna().unique().tolist(), '10/11')
+    all_seasons = sort_seasons_chronologically(transfers_enriched['transfer_season'].dropna().unique().tolist(), '12/13')
 
     # Apply season filter if configured
     if SELECTED_SEASONS and len(SELECTED_SEASONS) > 0:
@@ -105,79 +105,183 @@ def build_dashboard():
 
     # Create grouped bar chart for team statistics (initially hidden)
     import json
-    
+
     team_stats_title = Div(text="<h3>Click on a team column to see statistics</h3>", width=1200)
-    
-    # Create empty grouped bar chart
-    # Data structure: for each season, we'll have 3 bars (spent, earned, win%)
+
+    # Data source for team stats (money + win%, including per competition)
     chart_source = ColumnDataSource(data=dict(
         season=[],
         spent=[],
         earned=[],
         win_pct=[],
+        win_pct_league=[],
+        win_pct_domestic_cup=[],
+        win_pct_international_cup=[],
         games_played=[],
-        games_won=[]
+        games_won=[],
+        games_played_league=[],
+        games_won_league=[],
+        games_played_domestic_cup=[],
+        games_won_domestic_cup=[],
+        games_played_international_cup=[],
+        games_won_international_cup=[],
     ))
-    
+
     # Create figure with dual y-axes for better visualization
     from bokeh.transform import dodge
     from bokeh.models import LinearAxis, Range1d
-    
+
     p_team_stats = figure(
         x_range=[],
-        height=450,
+        height=380,
         width=1200,
-        title="Team Statistics by Season - Money vs Performance",
-        toolbar_location="above",
-        tools="hover,save,reset"
+        title="Team Statistics by Season – Money vs Performance",
+        toolbar_location="right",
+        tools="hover,save,reset,pan,wheel_zoom,box_zoom"
     )
-    
-    # Left y-axis: Money (€ millions)
+
+    # General styling tweaks
+    p_team_stats.background_fill_color = "#f9f9f9"
+    p_team_stats.border_fill_color = "#ffffff"
+    p_team_stats.outline_line_color = None
+    p_team_stats.grid.grid_line_color = "#dfe6e9"
+    p_team_stats.grid.grid_line_alpha = 0.4
+    p_team_stats.axis.axis_line_color = "#2c3e50"
+    p_team_stats.axis.major_tick_line_color = "#2c3e50"
+    p_team_stats.axis.major_label_text_font_size = "10pt"
+    p_team_stats.title.text_font_size = "14pt"
+
+    # Left y-axis: Money (€ Millions)
     p_team_stats.y_range = Range1d(start=0, end=100)
     p_team_stats.yaxis.axis_label = "Money (€ Millions)"
     p_team_stats.yaxis.axis_label_text_color = "#e74c3c"
-    
+
     # Money bars on left axis
-    spent_bars = p_team_stats.vbar(x=dodge('season', -0.2, range=p_team_stats.x_range), 
-                                    top='spent', width=0.35, source=chart_source,
-                                    color="#e74c3c", legend_label="Money Spent (€M)", alpha=0.8)
-    earned_bars = p_team_stats.vbar(x=dodge('season', 0.2, range=p_team_stats.x_range), 
-                                     top='earned', width=0.35, source=chart_source,
-                                     color="#2ecc71", legend_label="Money Earned (€M)", alpha=0.8)
-    
+    spent_bars = p_team_stats.vbar(
+        x=dodge('season', -0.2, range=p_team_stats.x_range),
+        top='spent', width=0.35, source=chart_source,
+        color="#e74c3c", legend_label="Money Spent (€M)", alpha=0.85
+    )
+    earned_bars = p_team_stats.vbar(
+        x=dodge('season', 0.2, range=p_team_stats.x_range),
+        top='earned', width=0.35, source=chart_source,
+        color="#27ae60", legend_label="Money Earned (€M)", alpha=0.85
+    )
+
     # Right y-axis: Win percentage
-    p_team_stats.extra_y_ranges = {"win_pct_range": Range1d(start=0, end=100)}
-    right_axis = LinearAxis(y_range_name="win_pct_range", axis_label="Win Percentage (%)")
-    right_axis.axis_label_text_color = "#3498db"
+    p_team_stats.extra_y_ranges = {"win_game_range": Range1d(start=0, end=70)}
+    right_axis = LinearAxis(y_range_name="win_game_range", axis_label="Games won")
+    right_axis.axis_label_text_color = "#2980b9"
     p_team_stats.add_layout(right_axis, 'right')
-    
-    # Win percentage as a line on right axis
-    win_line = p_team_stats.line(x='season', y='win_pct', source=chart_source,
-                                  color="#3498db", line_width=3, legend_label="Win %",
-                                  y_range_name="win_pct_range")
-    win_circles = p_team_stats.circle(x='season', y='win_pct', source=chart_source,
-                                       color="#3498db", size=10, legend_label="Win %",
-                                       y_range_name="win_pct_range")
-    
-    p_team_stats.x_range.range_padding = 0.1
-    p_team_stats.xgrid.grid_line_color = None
+
+    # Win % lines with different colors for each competition
+    # Overall – blue
+    win_line = p_team_stats.line(
+        x='season', y='games_won', source=chart_source,
+        color="#2980b9", line_width=3, legend_label="Games won (overall)",
+        y_range_name="win_game_range"
+    )
+    win_circles = p_team_stats.circle(
+        x='season', y='games_won', source=chart_source,
+        color="#2980b9", size=8, legend_label="Games won (overall)",
+        y_range_name="win_game_range"
+    )
+
+    # League – green
+    win_line_league = p_team_stats.line(
+        x='season', y='games_won_league', source=chart_source,
+        color="#27ae60", line_width=2, legend_label="Games won league",
+        y_range_name="win_game_range"
+    )
+    win_circles_league = p_team_stats.circle(
+        x='season', y='games_won_league', source=chart_source,
+        color="#27ae60", size=7, legend_label="Games won league",
+        y_range_name="win_game_range"
+    )
+
+    # Domestic cup – orange
+    win_line_domestic_cup = p_team_stats.line(
+        x='season', y='games_won_domestic_cup', source=chart_source,
+        color="#e67e22", line_width=2, legend_label="Games won domestic cup",
+        y_range_name="win_game_range"
+    )
+    win_circles_domestic_cup = p_team_stats.circle(
+        x='season', y='games_won_domestic_cup', source=chart_source,
+        color="#e67e22", size=7, legend_label="Games won domestic cup",
+        y_range_name="win_game_range"
+    )
+
+    # International cup – purple
+    win_line_international_cup = p_team_stats.line(
+        x='season', y='games_won_international_cup', source=chart_source,
+        color="#8e44ad", line_width=2, legend_label="Games won international cup",
+        y_range_name="win_game_range"
+    )
+    win_circles_international_cup = p_team_stats.circle(
+        x='season', y='games_won_international_cup', source=chart_source,
+        color="#8e44ad", size=7, legend_label="Games won international cup",
+        y_range_name="win_game_range"
+    )
+
+    p_team_stats.xaxis.major_label_orientation = 0.8
     p_team_stats.legend.location = "top_left"
     p_team_stats.legend.click_policy = "hide"
-    
-    # Add hover tool with custom tooltips
+
+    # Competition selector widget – stays close to the plot
+    competition_select = CheckboxButtonGroup(
+        labels=["Overall", "Domestic league", "Domestic cup", "International cup"],
+        active=[0, 1, 2, 3],
+        width=450
+    )
+
+    competition_callback = CustomJS(
+        args=dict(
+            competition_select=competition_select,
+            win_line=win_line,
+            win_circles=win_circles,
+            win_line_league=win_line_league,
+            win_circles_league=win_circles_league,
+            win_line_domestic_cup=win_line_domestic_cup,
+            win_circles_domestic_cup=win_circles_domestic_cup,
+            win_line_international_cup=win_line_international_cup,
+            win_circles_international_cup=win_circles_international_cup
+        ),
+        code="""
+            const active = new Set(competition_select.active);
+            function setVisible(glyph, flag) { if (glyph) glyph.visible = flag; }
+            setVisible(win_line, active.has(0));
+            setVisible(win_circles, active.has(0));
+            setVisible(win_line_league, active.has(1));
+            setVisible(win_circles_league, active.has(1));
+            setVisible(win_line_domestic_cup, active.has(2));
+            setVisible(win_circles_domestic_cup, active.has(2));
+            setVisible(win_line_international_cup, active.has(3));
+            setVisible(win_circles_international_cup, active.has(3));
+        """
+    )
+    competition_select.js_on_change('active', competition_callback)
+
+    # Hover tool: money + overall performance
     hover = p_team_stats.select_one(HoverTool)
     hover.tooltips = [
         ("Season", "@season"),
         ("Money Spent", "€@spent{0.0}M"),
         ("Money Earned", "€@earned{0.0}M"),
-        ("Win %", "@win_pct{0.0}%"),
-        ("Games", "@games_played played, @games_won won")
+        ("Games", "@games_played played, @games_won won"),
+        ("Games league", "@games_played_league played, @games_won_league won"),
+        ("Games domestic cup", "@games_played_domestic_cup played, @games_won_domestic_cup won"),
+        ("Games international cup", "@games_played_international_cup played, @games_won_international_cup won"),
     ]
     hover.mode = 'mouse'
-    
-    team_stats_layout = column(team_stats_title, p_team_stats)
-    # Start visible for testing
-    team_stats_layout.visible = True
+
+    # Put selector directly under the plot
+    team_stats_layout = column(
+        team_stats_title,
+        p_team_stats,
+        competition_select
+    )
+    # Hide until a club is clicked so it doesn't push the heatmaps down as an empty block
+    team_stats_layout.visible = False
 
     # Convert per-season matrices to JSON-serializable format for JavaScript
     # Convert float club IDs to integers for consistent keys
@@ -242,6 +346,14 @@ def build_dashboard():
         options=available_countries,
         disabled=True
     )
+
+    # Make top controls consistent in width
+    mode_select.width = 180
+    scale_select.width = 200
+    club_mode_select.width = 200
+    country_select.width = 220
+
+
 
     club_mode_callback = CustomJS(
         args=dict(
@@ -322,6 +434,7 @@ def build_dashboard():
         club_stats = calculate_per_season_statistics(
             club_id=club_id,
             games=games,
+            competitions=competitions,
             transfers_enriched=transfers_enriched,
             seasons=all_seasons
         )
@@ -380,7 +493,24 @@ def build_dashboard():
             console.log('Deselected - resetting chart');
             team_stats_layout.visible = false;
             window.currentTeamStats = null;
-            chart_source.data = {{season: [], spent: [], earned: [], win_pct: [], games_played: [], games_won: []}};
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
+
             p_team_stats.x_range.factors = [];
             return;
         }}
@@ -435,7 +565,23 @@ def build_dashboard():
         if (filteredStats.length === 0) {{
             team_stats_title.text = '<h3>' + clubName + ' - No data for selected seasons</h3>';
             team_stats_layout.visible = true;
-            chart_source.data = {{season: [], spent: [], earned: [], win_pct: [], games_played: [], games_won: []}};
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
             p_team_stats.x_range.factors = [];
             return;
         }}
@@ -449,6 +595,17 @@ def build_dashboard():
         const winPct = filteredStats.map(s => s.win_pct);  // Keep as percentage (0-100)
         const gamesPlayed = filteredStats.map(s => s.games_played);
         const gamesWon = filteredStats.map(s => s.games_won);
+        const winPctLeague = filteredStats.map(s => s.win_pct_league);
+        const winPctDomesticCup = filteredStats.map(s => s.win_pct_domestic_cup);
+        const winPctInternationalCup = filteredStats.map(s => s.win_pct_international_cup);
+        const gamesWonLeague = filteredStats.map(s => s.games_won_league);
+        console.log("aaa1");
+        const gamesPlayedLeague = filteredStats.map(s => s.games_played_league);
+        console.log("aaa2");
+        const gamesWonDomesticCup = filteredStats.map(s => s.games_won_domestic_cup);
+        const gamesPlayedDomesticCup = filteredStats.map(s => s.games_played_domestic_cup);
+        const gamesWonInternationalCup = filteredStats.map(s => s.games_won_international_cup);
+        const gamesPlayedInternationalCup = filteredStats.map(s => s.games_played_international_cup);
         
         console.log('Chart data - seasons:', seasons);
         console.log('Chart data - spent:', spent);
@@ -461,10 +618,19 @@ def build_dashboard():
             spent: spent,
             earned: earned,
             win_pct: winPct,
+            win_pct_league: winPctLeague,
+            win_pct_domestic_cup: winPctDomesticCup,
+            win_pct_international_cup: winPctInternationalCup,
             games_played: gamesPlayed,
-            games_won: gamesWon
+            games_won: gamesWon,
+            games_played_league: gamesPlayedLeague,
+            games_won_league: gamesWonLeague,
+            games_played_domestic_cup: gamesPlayedDomesticCup,
+            games_won_domestic_cup: gamesWonDomesticCup,
+            games_played_international_cup: gamesPlayedInternationalCup,
+            games_won_international_cup: gamesWonInternationalCup,
         }};
-        
+
         // Update x_range
         p_team_stats.x_range.factors = seasons;
         
@@ -576,7 +742,23 @@ def build_dashboard():
         
         if (filteredStats.length === 0) {{
             team_stats_title.text = '<h3>' + clubName + ' - No data for selected seasons</h3>';
-            chart_source.data = {{season: [], spent: [], earned: [], win_pct: [], games_played: [], games_won: []}};
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
             p_team_stats.x_range.factors = [];
             team_stats_layout.visible = true;
             return;
@@ -589,6 +771,18 @@ def build_dashboard():
         const winPct = filteredStats.map(s => s.win_pct);
         const gamesPlayed = filteredStats.map(s => s.games_played);
         const gamesWon = filteredStats.map(s => s.games_won);
+        const winPctLeague = filteredStats.map(s => s.win_pct_league);
+        const winPctDomesticCup = filteredStats.map(s => s.win_pct_domestic_cup);
+        const winPctInternationalCup = filteredStats.map(s => s.win_pct_international_cup);
+        const gamesWonLeague = filteredStats.map(s => s.games_won_league);
+        console.log("aaa3");
+        const gamesPlayedLeague = filteredStats.map(s => s.games_played_league);
+        console.log("aaa4");
+        const gamesWonDomesticCup = filteredStats.map(s => s.games_won_domestic_cup);
+        const gamesPlayedDomesticCup = filteredStats.map(s => s.games_played_domestic_cup);
+        const gamesWonInternationalCup = filteredStats.map(s => s.games_won_international_cup);
+        const gamesPlayedInternationalCup = filteredStats.map(s => s.games_played_international_cup);
+
         
         // Update chart
         chart_source.data = {{
@@ -596,9 +790,19 @@ def build_dashboard():
             spent: spent,
             earned: earned,
             win_pct: winPct,
+            win_pct_league: winPctLeague,
+            win_pct_domestic_cup: winPctDomesticCup,
+            win_pct_international_cup: winPctInternationalCup,
             games_played: gamesPlayed,
-            games_won: gamesWon
+            games_won: gamesWon,
+            games_played_league: gamesPlayedLeague,
+            games_won_league: gamesWonLeague,
+            games_played_domestic_cup: gamesPlayedDomesticCup,
+            games_won_domestic_cup: gamesWonDomesticCup,
+            games_played_international_cup: gamesPlayedInternationalCup,
+            games_won_international_cup: gamesWonInternationalCup,
         }};
+
         
         p_team_stats.x_range.factors = seasons;
         
@@ -956,17 +1160,42 @@ def build_dashboard():
         <div style="display:none;">Debug div loaded</div>
     """, visible=False)
 
-    layout = column(
+    page_title = Div(
+        text="""
+        <h1 style="margin-bottom:4px;">Club–Country Transfer Explorer</h1>
+        <p style="margin-top:0; color:#555;">
+            Explore transfer spending, income and performance by club and country.
+        </p>
+        """,
+        width=1200
+    )
+
+    # Top control bar: view, scale, club mode, country
+    top_controls = row(
         mode_select,
         scale_select,
-        season_widget_group,
         club_mode_select,
         country_select,
+        sizing_mode="scale_width"
+    )
+
+    # Seasons in their own full-width row
+    season_row = row(
+        season_widget_group,
+        sizing_mode="scale_width"
+    )
+
+    layout = column(
+        page_title,
+        top_controls,
+        season_row,
         money_layout,
         players_layout,
         team_stats_layout,
-        debug_div
+        debug_div,
+        sizing_mode="scale_width"
     )
+
     output_file(OUTPUT_HTML, title="Club-Country Transfer Heatmaps")
     show(layout)
 
