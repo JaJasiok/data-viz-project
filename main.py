@@ -156,70 +156,92 @@ def build_dashboard():
     p_team_stats.yaxis.axis_label = "Money (€ Millions)"
     p_team_stats.yaxis.axis_label_text_color = "#e74c3c"
 
-    # Money bars on left axis
     spent_bars = p_team_stats.vbar(
         x=dodge('season', -0.2, range=p_team_stats.x_range),
         top='spent', width=0.35, source=chart_source,
-        color="#e74c3c", legend_label="Money Spent (€M)", alpha=0.85
+        color="#661133",  # darker wine
+        legend_label="Money Spent (€M)", alpha=0.9
     )
+
     earned_bars = p_team_stats.vbar(
         x=dodge('season', 0.2, range=p_team_stats.x_range),
         top='earned', width=0.35, source=chart_source,
-        color="#27ae60", legend_label="Money Earned (€M)", alpha=0.85
+        color="#CC77AA",  # lighter purple
+        legend_label="Money Earned (€M)", alpha=0.9
     )
 
-    # Right y-axis: Win percentage
+    # Right y-axis for win data
     p_team_stats.extra_y_ranges = {"win_game_range": Range1d(start=0, end=70)}
-    right_axis = LinearAxis(y_range_name="win_game_range", axis_label="Games won")
-    right_axis.axis_label_text_color = "#2980b9"
+    right_axis = LinearAxis(
+        y_range_name="win_game_range",
+        axis_label="Games won",
+        axis_label_text_color="#88CCEE"  # match the light cyan overall line
+    )
     p_team_stats.add_layout(right_axis, 'right')
 
-    # Win % lines with different colors for each competition
-    # Overall – blue
-    win_line = p_team_stats.line(
-        x='season', y='games_won', source=chart_source,
-        color="#2980b9", line_width=3, legend_label="Games won (overall)",
-        y_range_name="win_game_range"
-    )
-    win_circles = p_team_stats.circle(
-        x='season', y='games_won', source=chart_source,
-        color="#2980b9", size=8, legend_label="Games won (overall)",
-        y_range_name="win_game_range"
-    )
+    # --- DRAW DARKEST FIRST, LIGHTEST LAST ---
 
-    # League – green
-    win_line_league = p_team_stats.line(
-        x='season', y='games_won_league', source=chart_source,
-        color="#27ae60", line_width=2, legend_label="Games won league",
-        y_range_name="win_game_range"
-    )
-    win_circles_league = p_team_stats.circle(
-        x='season', y='games_won_league', source=chart_source,
-        color="#27ae60", size=7, legend_label="Games won league",
-        y_range_name="win_game_range"
-    )
-
-    # Domestic cup – orange
-    win_line_domestic_cup = p_team_stats.line(
-        x='season', y='games_won_domestic_cup', source=chart_source,
-        color="#e67e22", line_width=2, legend_label="Games won domestic cup",
-        y_range_name="win_game_range"
-    )
-    win_circles_domestic_cup = p_team_stats.circle(
-        x='season', y='games_won_domestic_cup', source=chart_source,
-        color="#e67e22", size=7, legend_label="Games won domestic cup",
-        y_range_name="win_game_range"
-    )
-
-    # International cup – purple
+    ###########################################
+    # 1) INTERNATIONAL CUP – GREEN (#117733)
+    ###########################################
     win_line_international_cup = p_team_stats.line(
         x='season', y='games_won_international_cup', source=chart_source,
-        color="#8e44ad", line_width=2, legend_label="Games won international cup",
+        color="#88CCEE", line_width=2,
+        legend_label="Games won (international cup)",
         y_range_name="win_game_range"
     )
     win_circles_international_cup = p_team_stats.circle(
         x='season', y='games_won_international_cup', source=chart_source,
-        color="#8e44ad", size=7, legend_label="Games won international cup",
+        color="#88CCEE", size=7,
+        legend_label="Games won (international cup)",
+        y_range_name="win_game_range"
+    )
+
+    ###########################################
+    # 2) DOMESTIC CUP – OLIVE (#999933)
+    ###########################################
+    win_line_domestic_cup = p_team_stats.line(
+        x='season', y='games_won_domestic_cup', source=chart_source,
+        color="#DDCC77", line_width=2,
+        legend_label="Games won (domestic cup)",
+        y_range_name="win_game_range"
+    )
+    win_circles_domestic_cup = p_team_stats.circle(
+        x='season', y='games_won_domestic_cup', source=chart_source,
+        color="#DDCC77", size=7,
+        legend_label="Games won (domestic cup)",
+        y_range_name="win_game_range"
+    )
+
+    ###########################################
+    # 3) LEAGUE – SAND (#DDCC77, light warm)
+    ###########################################
+    win_line_league = p_team_stats.line(
+        x='season', y='games_won_league', source=chart_source,
+        color="#999933", line_width=2,
+        legend_label="Games won (league)",
+        y_range_name="win_game_range"
+    )
+    win_circles_league = p_team_stats.circle(
+        x='season', y='games_won_league', source=chart_source,
+        color="#999933", size=7,
+        legend_label="Games won (league)",
+        y_range_name="win_game_range"
+    )
+
+    ###########################################
+    # 4) OVERALL – CYAN (#88CCEE, light cool)
+    ###########################################
+    win_line = p_team_stats.line(
+        x='season', y='games_won', source=chart_source,
+        color="#117733", line_width=3,
+        legend_label="Games won (overall)",
+        y_range_name="win_game_range"
+    )
+    win_circles = p_team_stats.circle(
+        x='season', y='games_won', source=chart_source,
+        color="#117733", size=8,
+        legend_label="Games won (overall)",
         y_range_name="win_game_range"
     )
 
