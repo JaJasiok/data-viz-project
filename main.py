@@ -466,10 +466,11 @@ def build_dashboard():
     club_names_json = json.dumps({int(k): v for k, v in club_id_to_name.items() if k in top_club_ids})
     
     # Get data sources for all rectangle renderers
-    mi_source = mi_lin_rect.data_source if mi_lin_rect else None
-    mo_source = mo_lin_rect.data_source if mo_lin_rect else None
-    pi_source = pi_lin_rect.data_source if pi_lin_rect else None
-    po_source = po_lin_rect.data_source if po_lin_rect else None
+    all_sources = []
+    for rect_list in result['rects'].values():
+        for rect in rect_list:
+            if rect:
+                all_sources.append(rect.data_source)
     
     click_callback = CustomJS(
         args=dict(
@@ -479,10 +480,7 @@ def build_dashboard():
             p_team_stats=p_team_stats,
             season_select=season_select,
             all_seasons=all_seasons,
-            mi_source=mi_source,
-            mo_source=mo_source,
-            pi_source=pi_source,
-            po_source=po_source
+            all_sources=all_sources
         ),
         code=f"""
         const perSeasonStats = {per_season_stats_json};
@@ -490,27 +488,73 @@ def build_dashboard():
         
         console.log('Callback triggered!');
         
-        // Get the source - try cb_obj first, then check all sources
         let source = null;
-        
-        // Check if cb_obj is the source (from js_on_change)
-        if (typeof cb_obj !== 'undefined' && cb_obj && cb_obj.selected && cb_obj.selected.indices) {{
-            source = cb_obj;
-            console.log('Using cb_obj as source');
+        let triggeringSource = null;
+
+        // 1. Try to identify which source triggered the event
+        if (typeof cb_obj !== 'undefined') {{
+            for (const s of all_sources) {{
+                // Check if cb_obj is the Selection object of source s
+                if (s.selected === cb_obj) {{
+                    triggeringSource = s;
+                    break;
+                }}
+                // Check if cb_obj is the Source s itself (just in case)
+                if (s === cb_obj) {{
+                    triggeringSource = s;
+                    break;
+                }}
+            }}
+        }}
+
+        // 2. If we identified the trigger and it has a selection, enforce mutual exclusivity
+        if (triggeringSource && triggeringSource.selected.indices.length > 0) {{
+            console.log('New selection on source');
+            source = triggeringSource;
+            
+            // Clear all OTHER sources
+            for (const s of all_sources) {{
+                if (s !== source) {{
+                    s.selected.indices = [];
+                }}
+            }}
         }} else {{
-            // Check mo_source specifically for selection/deselection
-            if (mo_source) {{
-                source = mo_source;
-                console.log('Using mo_source');
+            // 3. Fallback: Find any selected source
+            for (const s of all_sources) {{
+                if (s.selected.indices.length > 0) {{
+                    source = s;
+                    break;
+                }}
             }}
         }}
         
         if (!source) {{
-            console.log('No source found');
+            console.log('No source with selection found - resetting chart');
+            team_stats_layout.visible = false;
+            window.currentTeamStats = null;
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
+
+            p_team_stats.x_range.factors = [];
             return;
         }}
         
-        // Handle deselection - reset the chart
+        // Handle deselection - reset the chart (redundant check but safe)
         if (!source.selected.indices || source.selected.indices.length === 0) {{
             console.log('Deselected - resetting chart');
             team_stats_layout.visible = false;
@@ -542,6 +586,23 @@ def build_dashboard():
         
         console.log('Clicked on:', clickedClub);
         
+        // Expand selection to whole column
+        const allIndices = [];
+        const clubs = source.data.club;
+        for (let i = 0; i < clubs.length; i++) {{
+            if (clubs[i] === clickedClub) {{
+                allIndices.push(i);
+            }}
+        }}
+        
+        // Only update if we haven't already selected the whole column
+        // This prevents infinite loops since updating indices triggers this callback again
+        if (source.selected.indices.length !== allIndices.length) {{
+            console.log('Expanding selection to whole column');
+            source.selected.indices = allIndices;
+            return;
+        }}
+        
         // Extract club name from "Club Name (Country)" format
         const match = clickedClub.match(/^(.+?) \\((.+?)\\)$/);
         if (!match) {{
@@ -569,6 +630,27 @@ def build_dashboard():
             console.log('No stats for club ID:', clubId);
             team_stats_title.text = '<h3 style=\"color: orange;\">' + clubName + ' - No statistics available</h3>';
             team_stats_layout.visible = true;
+            
+            // Clear chart data
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
+            p_team_stats.x_range.factors = [];
+            
             return;
         }}
         
@@ -690,15 +772,22 @@ def build_dashboard():
         """
     )
     
-    # Connect callback only to money_out source (second heatmap)
-    if mo_source:
-        mo_source.selected.js_on_change('indices', click_callback)
+    # Connect callback to all sources (lin, log, pct) for all plots
+    all_rects = []
+    all_rects.extend(result['rects']['lin'])
+    all_rects.extend(result['rects']['log'])
+    all_rects.extend(result['rects']['pct'])
     
-    # Also add TapTool callback to money_out plot directly
+    for rect in all_rects:
+        if rect:
+            rect.data_source.selected.js_on_change('indices', click_callback)
+            
+    # Also add TapTool callback to all plots directly
     from bokeh.models import TapTool
-    tap_tool = p_money_out.select_one(TapTool)
-    if tap_tool:
-        tap_tool.callback = click_callback
+    for p in [p_money_in, p_money_out, p_players_in, p_players_out]:
+        tap_tool = p.select_one(TapTool)
+        if tap_tool:
+            tap_tool.callback = click_callback
     
     # Create a callback to update team stats when filters change
     update_team_stats_callback = CustomJS(
