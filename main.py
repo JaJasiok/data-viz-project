@@ -300,7 +300,6 @@ def build_dashboard():
     team_stats_layout = column(
         team_stats_title,
         p_team_stats,
-        competition_select
     )
     # Hide until a club is clicked so it doesn't push the heatmaps down as an empty block
     team_stats_layout.visible = False
@@ -917,7 +916,13 @@ def build_dashboard():
             # NEW: pass colorbars so we can update their color_mappers
             lin_cbs=[mi_lin_cb, mo_lin_cb, pi_lin_cb, po_lin_cb],
             log_cbs=[mi_log_cb, mo_log_cb, pi_log_cb, po_log_cb],
-            pct_cbs=[mi_pct_cb, mo_pct_cb, pi_pct_cb, po_pct_cb]
+            pct_cbs=[mi_pct_cb, mo_pct_cb, pi_pct_cb, po_pct_cb],
+            separators_list=[
+                p_money_in._separators,
+                p_money_out._separators,
+                p_players_in._separators,
+                p_players_out._separators
+            ],
         ),
         code="""
         // Parse the JSON string to get season_data_js
@@ -929,6 +934,18 @@ def build_dashboard():
         
         if (selected.length === 0) {
             selected = all_seasons;
+        }
+        
+        // Hide separators when By country is active
+        const hideSeparators = (club_mode_select.value === "By country");
+        
+        for (let plotIndex = 0; plotIndex < separators_list.length; plotIndex++) {
+            const seps = separators_list[plotIndex];
+            if (!seps) continue;
+        
+            for (let s = 0; s < seps.length; s++) {
+                seps[s].visible = !hideSeparators;
+            }
         }
         
         // Decide which clubs are currently active
@@ -944,6 +961,7 @@ def build_dashboard():
         
                 // If no country is selected yet, don't wipe everything:
                 if (!target) {
+                    // no country selected yet → keep Top 50
                     ids = top_club_ids.slice();
                 } else {
                     for (const [id, country] of club_country_map_js) {
@@ -960,28 +978,236 @@ def build_dashboard():
                     }
                 }
             }
+
+            // No ordering here – just active IDs.
+            return ids;
+        }
         
-            // Sort nicely for display
-            ids.sort((a, b) => {
-                const na = (club_display_map_js[a] || "").toLowerCase();
-                const nb = (club_display_map_js[b] || "").toLowerCase();
-                if (na < nb) return -1;
-                if (na > nb) return 1;
-                return a - b;
+        // Active clubs for this interaction (no order yet)
+        const club_ids = getActiveClubs();
+        
+        // Compute ordering per matrix, based on its content and mode (Top 50 / By country)
+        function computeOrderingForMatrix(matrix_key, aggregated, club_ids, mode) {
+            const specials = ["Without Club", "Retired", "Unknown"];
+        
+            // ---------- ROW TOTALS (by country) ----------
+            const row_totals = {};
+            for (const country in aggregated) {
+                let sum = 0;
+                const row = aggregated[country];
+                for (const cid of club_ids) {
+                    sum += (row && row[cid]) ? row[cid] : 0;
+                }
+                row_totals[country] = sum;
+            }
+        
+            // ---------- ROW ORDERING (countries) ----------
+            const allCountriesInMatrix = Object.keys(aggregated);
+            const core_rows = [];
+            const extra_rows = [];
+        
+            for (const country of allCountriesInMatrix) {
+                const total = row_totals[country] || 0;
+                if (total <= 0) {
+                    // completely empty row → skip it
+                    continue;
+                }
+                if (specials.includes(country)) {
+                    extra_rows.push(country);
+                } else {
+                    core_rows.push(country);
+                }
+            }
+        
+            // Python: core_rows = sorted(core_rows, key=lambda r: (-row_totals[r], r))
+            core_rows.sort((a, b) => {
+                const da = row_totals[a] || 0;
+                const db = row_totals[b] || 0;
+                if (db !== da) return db - da;           // descending by total
+                return a.localeCompare(b);               // tie-breaker: country name
             });
         
-            const labels = ids.map(id => club_display_map_js.get(id) || String(id));
-            return { ids, labels };
-        }
+            // rows = core_rows + [r for r in specials if r in extra_rows]
+            let rows = core_rows.concat(extra_rows);
         
-        const active = getActiveClubs();
-        const club_ids = active.ids;
-        const club_display_names = active.labels;
+            // ---------- COLUMN TOTALS (by club) ----------
+            const col_totals = {};
+            for (const cid of club_ids) {
+                let sum = 0;
+                for (const country in aggregated) {
+                    const row = aggregated[country];
+                    if (row && row[cid]) sum += row[cid];
+                }
+                col_totals[cid] = sum;
+            }
         
-        // Update x_range factors of all plots to match active clubs
-        for (let i = 0; i < plots.length; i++) {
-            plots[i].x_range.factors = club_display_names;
+            // ---------- CLUB ORDERING ----------
+            let orderedClubIds = [];
+        
+            if (mode === "By country" && country_select.value) {
+                // Filter to countries that actually appear (optional but helpful)
+                let activeCountries = rows.filter(c => aggregated[c] !== undefined);
+        
+                // Initial positions (indices) for rows & columns
+                let rowPos = {};
+                activeCountries.forEach((c, idx) => { rowPos[c] = idx; });
+        
+                let colIds = club_ids.slice();
+                let colPos = {};
+                colIds.forEach((cid, idx) => { colPos[cid] = idx; });
+        
+                // Compute barycenters for columns (clubs) based on row positions
+                function computeColumnBarycenters() {
+                    const bc = {};
+                    for (const cid of colIds) {
+                        let sumW = 0;
+                        let sumPos = 0;
+                        for (const country of activeCountries) {
+                            const val = (aggregated[country] && aggregated[country][cid]) || 0;
+                            if (val > 0) {
+                                sumW += val;
+                                sumPos += rowPos[country] * val;
+                            }
+                        }
+                        // No neighbors → stick to the end
+                        bc[cid] = (sumW === 0) ? Number.POSITIVE_INFINITY : (sumPos / sumW);
+                    }
+                    return bc;
+                }
+        
+                // Compute barycenters for rows (countries) based on column positions
+                function computeRowBarycenters() {
+                    const bc = {};
+                    for (const country of activeCountries) {
+                        const row = aggregated[country];
+                        let sumW = 0;
+                        let sumPos = 0;
+                        if (row) {
+                            for (const cid of colIds) {
+                                const val = row[cid] || 0;
+                                if (val > 0) {
+                                    sumW += val;
+                                    sumPos += colPos[cid] * val;
+                                }
+                            }
+                        }
+                        bc[country] = (sumW === 0) ? Number.POSITIVE_INFINITY : (sumPos / sumW);
+                    }
+                    return bc;
+                }
+        
+                const MAX_ITERS = 4;  // small fixed number is usually enough
+        
+                for (let it = 0; it < MAX_ITERS; it++) {
+                    // --- reorder clubs by barycenter of connected countries ---
+                    const colBC = computeColumnBarycenters();
+                    colIds.sort((a, b) => {
+                        const ca = colBC[a];
+                        const cb = colBC[b];
+                        if (ca !== cb) return ca - cb;
+                        // tie-breaker: stronger clubs first, then by name
+                        const da = col_totals[a] || 0;
+                        const db = col_totals[b] || 0;
+                        if (db !== da) return db - da;
+                        const na = (club_display_map_js.get(a) || "").toLowerCase();
+                        const nb = (club_display_map_js.get(b) || "").toLowerCase();
+                        const cmp = na.localeCompare(nb);
+                        if (cmp !== 0) return cmp;
+                        return a - b;
+                    });
+                    colIds.forEach((cid, idx) => { colPos[cid] = idx; });
+        
+                    // --- reorder countries by barycenter of connected clubs ---
+                    const rowBC = computeRowBarycenters();
+                    activeCountries.sort((a, b) => {
+                        const ca = rowBC[a];
+                        const cb = rowBC[b];
+                        if (ca !== cb) return ca - cb;
+                        // tie-breaker: stronger rows first, then name
+                        const da = row_totals[a] || 0;
+                        const db = row_totals[b] || 0;
+                        if (db !== da) return db - da;
+                        return a.localeCompare(b);
+                    });
+                    activeCountries.forEach((c, idx) => { rowPos[c] = idx; });
+                }
+        
+                rows = activeCountries
+        
+                orderedClubIds = colIds;
+            } else {
+                // ---- TOP 50 STYLE: direct translation of your Python code ----
+                // Python:
+                // for country in rows:
+                //     in_group = [cid for cid in col_ids if get_club_country(cid) == country and cid not in seen]
+                //     in_group = sorted(in_group, key=lambda cid: (-col_totals[cid], club_id_to_name[cid]))
+                //     ordered_club_ids.extend(in_group)
+        
+                const seen = new Set();
+                const baseClubIds = club_ids.slice();  // like col_ids
+        
+                for (const country of rows) {
+                    const in_group = baseClubIds.filter(
+                        cid => (club_country_map_js.get(cid) === country) && !seen.has(cid)
+                    );
+        
+                    in_group.sort((a, b) => {
+                        const da = col_totals[a] || 0;
+                        const db = col_totals[b] || 0;
+                        if (db !== da) return db - da; // descending total
+                        const na = (club_display_map_js.get(a) || "").toLowerCase();
+                        const nb = (club_display_map_js.get(b) || "").toLowerCase();
+                        const cmp = na.localeCompare(nb); // tie-break by name
+                        if (cmp !== 0) return cmp;
+                        return a - b;
+                    });
+        
+                    for (const cid of in_group) {
+                        seen.add(cid);
+                        orderedClubIds.push(cid);
+                    }
+                }
+        
+                // Python leftovers:
+                // leftovers = [cid for cid in col_ids if cid not in seen]
+                // leftovers = sorted(leftovers, key=lambda cid: (get_club_country(cid),
+                //                                              -col_totals[cid],
+                //                                               club_id_to_name[cid]))
+                const leftovers = baseClubIds.filter(cid => !seen.has(cid));
+                leftovers.sort((a, b) => {
+                    const ca = club_country_map_js.get(a) || "";
+                    const cb = club_country_map_js.get(b) || "";
+                    const cmpC = ca.localeCompare(cb);   // by country name
+                    if (cmpC !== 0) return cmpC;
+        
+                    const da = col_totals[a] || 0;
+                    const db = col_totals[b] || 0;
+                    if (db !== da) return db - da;       // then by total desc
+        
+                    const na = (club_display_map_js.get(a) || "").toLowerCase();
+                    const nb = (club_display_map_js.get(b) || "").toLowerCase();
+                    const cmpN = na.localeCompare(nb);   // then by name
+                    if (cmpN !== 0) return cmpN;
+        
+                    return a - b;
+                });
+        
+                orderedClubIds = orderedClubIds.concat(leftovers);
+            }
+        
+            // NOTE: club_display_map_js is a plain object, not a Map → use [] not .get()
+            const club_labels = orderedClubIds.map(
+                cid => club_display_map_js.get(cid) || String(cid)
+            );
+        
+            return {
+                rows,                  // ordered list of countries (row labels)
+                club_ids: orderedClubIds,
+                club_labels: club_labels
+            };
         }
+
+
 
                 
         // Function to aggregate matrices across selected seasons
@@ -1044,77 +1270,145 @@ def build_dashboard():
         }
                 
         // Function to convert matrix to stacked format for data source
-        function matrixToStacked(matrix) {
+                // Convert matrix to stacked format using explicit row/column order
+        function matrixToStacked(matrix, row_order, col_ids_order, col_labels_order) {
             const countries = [];
             const clubs = [];
             const values = [];
-            
-            for (const country of all_countries) {
+
+            for (const country of row_order) {
                 if (!matrix[country]) {
                     console.warn('Country not found in matrix:', country);
                     continue;
                 }
-                
-                for (let i = 0; i < club_ids.length; i++) {
-                    const club_id = club_ids[i];
-                    const club_display = club_display_names[i];
+
+                for (let i = 0; i < col_ids_order.length; i++) {
+                    const club_id = col_ids_order[i];
+                    const club_label = col_labels_order[i];
                     countries.push(country);
-                    clubs.push(club_display);
+                    clubs.push(club_label);
                     values.push(matrix[country][club_id] || 0);
                 }
             }
-            
+
             return { country: countries, club: clubs, value: values };
         }
+
         
-        // Function to calculate percentages from absolute values
-        function calculatePercentages(matrix) {
+        // Function to calculate percentages from absolute values,
+        // using the same row/column order
+        function calculatePercentages(matrix, row_order, col_ids_order) {
             const pct_matrix = {};
-            
-            // Calculate column sums
             const col_sums = {};
-            for (const club_id of club_ids) {
-                col_sums[club_id] = 0;
-                for (const country of all_countries) {
+
+            // Column sums over selected rows
+            for (const club_id of col_ids_order) {
+                let sum = 0;
+                for (const country of row_order) {
                     if (matrix[country]) {
-                        col_sums[club_id] += matrix[country][club_id] || 0;
+                        sum += matrix[country][club_id] || 0;
                     }
                 }
+                col_sums[club_id] = sum;
             }
-            
-            // Calculate percentages
-            for (const country of all_countries) {
+
+            // Percentages
+            for (const country of row_order) {
                 pct_matrix[country] = {};
-                for (const club_id of club_ids) {
+                for (const club_id of col_ids_order) {
                     const total = col_sums[club_id];
                     if (total > 0 && matrix[country]) {
-                        pct_matrix[country][club_id] = (matrix[country][club_id] || 0) / total * 100.0;
+                        pct_matrix[country][club_id] =
+                            (matrix[country][club_id] || 0) / total * 100.0;
                     } else {
                         pct_matrix[country][club_id] = 0;
                     }
                 }
             }
-            
+
             return pct_matrix;
         }
         
-        // Update each visualization
+         // ---- HELPER: longest label length ----
+        function maxLabelLength(labels) {
+            let maxLen = 0;
+            for (let i = 0; i < labels.length; i++) {
+                const s = labels[i] || "";
+                if (s.length > maxLen) {
+                    maxLen = s.length;
+                }
+            }
+            return maxLen;
+        }
+
+        // ---- HELPER: adjust plot size based on data ----
+        function adjustPlotSize(plot, rowCount, colCount, maxLabelLen) {
+            // --- TUNABLE CONSTANTS (play with these) ---
+            const BASE_WIDTH   = 800;  // base plot width in px
+            const BASE_HEIGHT  = 200;  // base plot height in px
+
+            const PX_PER_COL   = 15;   // extra width per column (club)
+            const PX_PER_ROW   = 15;   // extra height per row (country)
+
+            const LABEL_FACTOR = 3;    // extra height per character of longest label
+
+            // --------------------------------------------
+
+            let width = BASE_WIDTH  + colCount  * PX_PER_COL;
+            let height = BASE_HEIGHT + rowCount * PX_PER_ROW + maxLabelLen * LABEL_FACTOR;
+            debugger;
+
+            plot.width  = width;
+            plot.height = height;
+        }
+
+        
+                // Update each visualization
         for (let i = 0; i < matrices_keys.length; i++) {
             const matrix_key = matrices_keys[i];
             const source = sources[i];
             const pct_source = pct_sources[i];
-        
-            // Aggregate data for this matrix
+
+            // 1) Aggregate data for this matrix (absolute values)
             const aggregated = aggregateSeasons(matrix_key);
-        
-            // Update absolute value source
-            const stacked = matrixToStacked(aggregated);
+
+            // 2) Compute per-matrix ordering (countries & clubs) based on content + mode
+            const ordering = computeOrderingForMatrix(
+                matrix_key,
+                aggregated,
+                club_ids,
+                club_mode_select.value
+            );
+            const row_order = ordering.rows;
+            const ordered_club_ids = ordering.club_ids;
+            const ordered_club_labels = ordering.club_labels;
+
+            // 3) Update THIS plot's x_range factors
+            const row_order_for_display = row_order.slice().reverse();
+            plots[i].x_range.factors = ordered_club_labels;
+            plots[i].y_range.factors = row_order_for_display;
+            
+            const maxLen = maxLabelLength(ordered_club_labels);
+            adjustPlotSize(
+                plots[i],
+                row_order_for_display.length,    // number of visible countries (rows)
+                ordered_club_ids.length,         // number of clubs (columns)
+                maxLen                           // longest club label
+            );
+
+            // 4) Update absolute value source in that order
+            const stacked = matrixToStacked(
+                aggregated,
+                row_order_for_display,
+                ordered_club_ids,
+                ordered_club_labels
+            );
             source.data = stacked;
-        
+
             // ---- recompute color scale for absolute values ----
             const lin_cb = lin_cbs[i];
             const log_cb = log_cbs[i];
-        
+
             if (lin_cb) {
                 const vals = stacked.value;
                 let minv = Infinity;
@@ -1126,11 +1420,11 @@ def build_dashboard():
                 }
                 if (!isFinite(minv)) minv = 0;
                 if (!isFinite(maxv) || maxv <= minv) maxv = minv + 1;
-        
+
                 // linear mapper
                 lin_cb.color_mapper.low = minv;
                 lin_cb.color_mapper.high = maxv;
-        
+
                 // log mapper (if exists)
                 if (log_cb) {
                     const pos = vals.filter(v => v > 0);
@@ -1145,11 +1439,20 @@ def build_dashboard():
                     }
                 }
             }
-        
+
             // ---- update percentage source & keep its scale (0-100) ----
             if (pct_source) {
-                const pct_aggregated = calculatePercentages(aggregated);
-                const pct_stacked = matrixToStacked(pct_aggregated);
+                const pct_aggregated = calculatePercentages(
+                    aggregated,
+                    row_order_for_display,
+                    ordered_club_ids
+                );
+                const pct_stacked = matrixToStacked(
+                    pct_aggregated,
+                    row_order_for_display,
+                    ordered_club_ids,
+                    ordered_club_labels
+                );
                 pct_source.data = {
                     country: pct_stacked.country,
                     club: pct_stacked.club,
@@ -1159,6 +1462,7 @@ def build_dashboard():
                 // pct_cbs[i] already uses 0..100; no need to adjust
             }
         }
+
                 """
     )
 
