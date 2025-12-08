@@ -82,8 +82,8 @@ def build_dashboard():
     mi_pct_cb, mo_pct_cb, pi_pct_cb, po_pct_cb = result['color_bars']['pct']
 
     # Layouts per mode
-    money_layout = column(p_money_in, p_money_out, css_classes=['content-card'], stylesheets=[css_content])
-    players_layout = column(p_players_in, p_players_out, css_classes=['content-card'], stylesheets=[css_content])
+    money_layout = column(p_money_in, p_money_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
+    players_layout = column(p_players_in, p_players_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
     players_layout.visible = False  # start with Money
     
     season_title = Div(text="<span class='section-title'>Seasons</span>")
@@ -1180,31 +1180,9 @@ def build_dashboard():
         <div style="display:none;">Debug div loaded</div>
     """, visible=False)
 
-    page_title = Div(
-        text="""
-        <div class="dashboard-header">
-            <h1>Club–Country Transfer Explorer</h1>
-            <p>
-                Explore transfer spending, income and performance by club and country.
-            </p>
-        </div>
-        """,
-        width=1200
-    )
-
-    # Top control bar: view, scale, club mode, country
-    top_controls = row(
-        mode_select,
-        scale_select,
-        club_mode_select,
-        country_select,
-        css_classes=['control-panel'],
-        stylesheets=[css_content],
-        spacing=20
-    )
-
-    # Seasons in their own full-width row
-    season_row = row(
+    # Combined control panel
+    controls_panel = column(
+        row(mode_select, scale_select, club_mode_select, country_select, spacing=20),
         season_widget_group,
         css_classes=['control-panel'],
         stylesheets=[css_content],
@@ -1224,13 +1202,11 @@ def build_dashboard():
             </p>
         </div>
         """,
-        width=1200
+        sizing_mode="stretch_width"
     )
 
     layout = column(
-        page_title,
-        top_controls,
-        season_row,
+        row(page_title, controls_panel, sizing_mode="scale_width"),
         money_layout,
         players_layout,
         team_stats_layout,
