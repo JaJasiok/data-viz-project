@@ -452,7 +452,7 @@ def build_dashboard():
     # Click handler for team statistics
     # Prepare data for all clubs per season
     per_season_stats_data = {}
-    for club_id in top_club_ids:
+    for club_id in all_club_ids:
         club_stats = calculate_per_season_statistics(
             club_id=club_id,
             games=games,
@@ -463,7 +463,7 @@ def build_dashboard():
         per_season_stats_data[int(club_id)] = club_stats.to_dict('records')
     
     per_season_stats_json = json.dumps(per_season_stats_data)
-    club_names_json = json.dumps({int(k): v for k, v in club_id_to_name.items() if k in top_club_ids})
+    club_names_json = json.dumps({int(k): v for k, v in club_id_to_name.items() if k in all_club_ids})
     
     # Get data sources for all rectangle renderers
     all_sources = []
