@@ -527,8 +527,17 @@ def build_dashboard():
         }}
 
         // 2. Identify the source (triggering or fallback)
-        if (triggeringSource && triggeringSource.selected.indices.length > 0) {{
-            source = triggeringSource;
+        if (triggeringSource) {{
+            if (triggeringSource.selected.indices.length > 0) {{
+                source = triggeringSource;
+            }} else {{
+                // Triggering source is empty -> Deselection intended
+                // Clear all other sources to ensure synchronization
+                for (const s of all_sources) {{
+                    s.selected.indices = [];
+                }}
+                source = null;
+            }}
         }} else {{
             // Fallback: Find any selected source
             for (const s of all_sources) {{
@@ -811,13 +820,6 @@ def build_dashboard():
         if rect:
             rect.data_source.selected.js_on_change('indices', click_callback)
 
-    # Also add TapTool callback to all plots directly
-    from bokeh.models import TapTool
-    for p in [p_money_in, p_money_out, p_players_in, p_players_out]:
-        tap_tool = p.select_one(TapTool)
-        if tap_tool:
-            tap_tool.callback = click_callback
-    
     # Create a callback to update team stats when filters change
     update_team_stats_callback = CustomJS(
         args=dict(
@@ -1044,6 +1046,16 @@ def build_dashboard():
             ],
         ),
         code="""
+        // Clear selection if mode or country changed
+        if (typeof cb_obj !== 'undefined' && (cb_obj === club_mode_select || cb_obj === country_select)) {
+            for (const s of sources) {
+                s.selected.indices = [];
+            }
+            for (const s of pct_sources) {
+                if (s) s.selected.indices = [];
+            }
+        }
+
         // Parse the JSON string to get season_data_js
         const season_data_js = JSON.parse(season_data_json_string);
         
@@ -1215,7 +1227,7 @@ def build_dashboard():
                     return bc;
                 }
         
-                const MAX_ITERS = 4;  // small fixed number is usually enough
+                const MAX_ITERS = 8;  // small fixed number is usually enough
         
                 for (let it = 0; it < MAX_ITERS; it++) {
                     // --- reorder clubs by barycenter of connected countries ---
