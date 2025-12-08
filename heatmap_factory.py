@@ -132,7 +132,7 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
         x_axis_location='above',
         tools=tools_list,
         toolbar_location='right',
-        width=1600,
+        sizing_mode='stretch_width',
         height=600
     )
 
