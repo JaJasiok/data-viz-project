@@ -507,19 +507,11 @@ def build_dashboard():
             }}
         }}
 
-        // 2. If we identified the trigger and it has a selection, enforce mutual exclusivity
+        // 2. Identify the source (triggering or fallback)
         if (triggeringSource && triggeringSource.selected.indices.length > 0) {{
-            console.log('New selection on source');
             source = triggeringSource;
-            
-            // Clear all OTHER sources
-            for (const s of all_sources) {{
-                if (s !== source) {{
-                    s.selected.indices = [];
-                }}
-            }}
         }} else {{
-            // 3. Fallback: Find any selected source
+            // Fallback: Find any selected source
             for (const s of all_sources) {{
                 if (s.selected.indices.length > 0) {{
                     source = s;
@@ -586,20 +578,38 @@ def build_dashboard():
         
         console.log('Clicked on:', clickedClub);
         
-        // Expand selection to whole column
-        const allIndices = [];
-        const clubs = source.data.club;
-        for (let i = 0; i < clubs.length; i++) {{
-            if (clubs[i] === clickedClub) {{
-                allIndices.push(i);
+        // Propagate selection to ALL sources (including the current one to expand to column)
+        let anyUpdate = false;
+        for (const s of all_sources) {{
+            const newIndices = [];
+            const clubs = s.data.club;
+            for (let i = 0; i < clubs.length; i++) {{
+                if (clubs[i] === clickedClub) {{
+                    newIndices.push(i);
+                }}
+            }}
+            
+            // Check if update is needed
+            const currentIndices = s.selected.indices;
+            let needsUpdate = false;
+            if (currentIndices.length !== newIndices.length) {{
+                needsUpdate = true;
+            }} else {{
+                for (let k = 0; k < newIndices.length; k++) {{
+                    if (currentIndices[k] !== newIndices[k]) {{
+                        needsUpdate = true;
+                        break;
+                    }}
+                }}
+            }}
+            
+            if (needsUpdate) {{
+                s.selected.indices = newIndices;
+                anyUpdate = true;
             }}
         }}
         
-        // Only update if we haven't already selected the whole column
-        // This prevents infinite loops since updating indices triggers this callback again
-        if (source.selected.indices.length !== allIndices.length) {{
-            console.log('Expanding selection to whole column');
-            source.selected.indices = allIndices;
+        if (anyUpdate) {{
             return;
         }}
         
