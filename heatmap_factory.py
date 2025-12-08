@@ -132,8 +132,8 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
         x_axis_location='above',
         tools=tools_list,
         toolbar_location='right',
-        sizing_mode='stretch_width',
-        height=600
+        width=1550,
+        height=629
     )
 
     # --- rects: absolute (linear) ---
@@ -288,6 +288,8 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
     if current_country is not None:
         groups.append((current_country, start_idx, len(ordered_club_ids) - 1))
 
+    p._separators = []
+
     # ----- vertical separators BETWEEN groups -----
     # categories are mapped to 0,1,2,... so boundary between groups is idx - 0.5
     for g_idx in range(1, len(groups)):
@@ -301,6 +303,7 @@ def make_heatmap(matrix, title, club_id_to_name, club_country_map,
             line_alpha=0.7
         )
         p.add_layout(separator)
+        p._separators.append(separator)
 
     # ----- optional: add horizontal separators between all row factors -----
     # y_factors are in visual bottom-to-top order; Bokeh maps them to 1..N.
