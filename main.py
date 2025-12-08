@@ -19,6 +19,15 @@ from heatmap_factory import build_matrices_and_heatmaps, build_per_season_data
 # ---------- MAIN BUILD PIPELINE ----------
 
 def build_dashboard():
+    # Load external CSS first
+    try:
+        with open('styles.css', 'r') as f:
+            css_content = f.read()
+        print(f"Loaded styles.css ({len(css_content)} bytes)")
+    except Exception as e:
+        print(f"Error loading styles.css: {e}")
+        css_content = ""
+
     # Load data
     clubs = load_data(BASE_PATH + 'clubs.csv')
     competitions = load_data(BASE_PATH + 'competitions.csv')
@@ -73,17 +82,17 @@ def build_dashboard():
     mi_pct_cb, mo_pct_cb, pi_pct_cb, po_pct_cb = result['color_bars']['pct']
 
     # Layouts per mode
-    money_layout = column(p_money_in, p_money_out)
-    players_layout = column(p_players_in, p_players_out)
+    money_layout = column(p_money_in, p_money_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
+    players_layout = column(p_players_in, p_players_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
     players_layout.visible = False  # start with Money
     
-    season_title = Div(text="Seasons")
+    season_title = Div(text="<span class='section-title'>Seasons</span>")
 
     # Season filter widget - shows which seasons are included
     season_select = CheckboxButtonGroup(
         labels=all_seasons,
         active=[i for i, s in enumerate(all_seasons) if s in selected_seasons_display],
-        width=800
+        stylesheets=[css_content]
     )
     
     season_widget_group = column(season_title, season_select)
@@ -253,7 +262,8 @@ def build_dashboard():
     competition_select = CheckboxButtonGroup(
         labels=["Overall", "Domestic league", "Domestic cup", "International cup"],
         active=[0, 1, 2, 3],
-        width=450
+        width=450,
+        stylesheets=[css_content]
     )
 
     competition_callback = CustomJS(
@@ -300,7 +310,9 @@ def build_dashboard():
     team_stats_layout = column(
         team_stats_title,
         p_team_stats,
-        competition_select
+        competition_select,
+        css_classes=['content-card'],
+        stylesheets=[css_content]
     )
     # Hide until a club is clicked so it doesn't push the heatmaps down as an empty block
     team_stats_layout.visible = False
@@ -322,7 +334,9 @@ def build_dashboard():
     mode_select = Select(
         title="View mode",
         value="Money",
-        options=["Money", "Players"]
+        options=["Money", "Players"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     callback = CustomJS(
@@ -347,13 +361,17 @@ def build_dashboard():
     scale_select = Select(
         title="Scale / representation",
         value="Linear",
-        options=["Linear", "Log", "Percentage"]
+        options=["Linear", "Log", "Percentage"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     club_mode_select = Select(
         title="Clubs",
         value="Top 50",
-        options=["Top 50", "By country"]
+        options=["Top 50", "By country"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     # Available countries (from clubs_enriched / club_country_map)
@@ -366,7 +384,9 @@ def build_dashboard():
         title="Country",
         value=available_countries[0] if available_countries else "",
         options=available_countries,
-        disabled=True
+        disabled=True,
+        width=200,
+        stylesheets=[css_content]
     )
 
     # Make top controls consistent in width
@@ -760,7 +780,7 @@ def build_dashboard():
         const totalEarned = earned.reduce((sum, s) => sum + s, 0);
         const netSpend = totalEarned - totalSpent;
         
-        team_stats_title.text = '<h3 style="margin-bottom: 10px;">' + clubName + ' - Money vs Performance</h3>' +
+        team_stats_title.text = '<div class="section-title">' + clubName + ' - Money vs Performance</div>' +
             '<div style="display: flex; gap: 30px; color: #666; font-size: 14px; margin: 10px 0;">' +
             '<div><strong>Games:</strong> ' + totalGames + ' played, ' + totalWins + ' won (' + avgWinPct + '%)</div>' +
             '<div><strong>Spending:</strong> €' + totalSpent.toFixed(1) + 'M</div>' +
@@ -938,7 +958,7 @@ def build_dashboard():
         const totalEarned = earned.reduce((sum, s) => sum + s, 0);
         const netSpend = totalEarned - totalSpent;
         
-        team_stats_title.text = '<h3 style="margin-bottom: 10px;">' + clubName + ' - Money vs Performance</h3>' +
+        team_stats_title.text = '<div class="section-title">' + clubName + ' - Money vs Performance</div>' +
             '<div style="display: flex; gap: 30px; color: #666; font-size: 14px; margin: 10px 0;">' +
             '<div><strong>Games:</strong> ' + totalGames + ' played, ' + totalWins + ' won (' + avgWinPct + '%)</div>' +
             '<div><strong>Spending:</strong> €' + totalSpent.toFixed(1) + 'M</div>' +
@@ -1281,35 +1301,33 @@ def build_dashboard():
         <div style="display:none;">Debug div loaded</div>
     """, visible=False)
 
-    page_title = Div(
-        text="""
-        <h1 style="margin-bottom:4px;">Club–Country Transfer Explorer</h1>
-        <p style="margin-top:0; color:#555;">
-            Explore transfer spending, income and performance by club and country.
-        </p>
-        """,
-        width=1200
-    )
-
-    # Top control bar: view, scale, club mode, country
-    top_controls = row(
-        mode_select,
-        scale_select,
-        club_mode_select,
-        country_select,
-        sizing_mode="scale_width"
-    )
-
-    # Seasons in their own full-width row
-    season_row = row(
+    # Combined control panel
+    controls_panel = column(
+        row(mode_select, scale_select, club_mode_select, country_select, spacing=20),
         season_widget_group,
-        sizing_mode="scale_width"
+        css_classes=['control-panel'],
+        stylesheets=[css_content],
+        spacing=20
+    )
+
+    # Inject CSS directly into the page title Div to ensure it's rendered
+    page_title = Div(
+        text=f"""
+        <style>
+        {css_content}
+        </style>
+        <div class="dashboard-header">
+            <h1>Club–Country Transfer Explorer</h1>
+            <p>
+                Explore transfer spending, income and performance by club and country.
+            </p>
+        </div>
+        """,
+        sizing_mode="stretch_width"
     )
 
     layout = column(
-        page_title,
-        top_controls,
-        season_row,
+        row(page_title, controls_panel, sizing_mode="scale_width"),
         money_layout,
         players_layout,
         team_stats_layout,
