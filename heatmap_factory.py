@@ -371,7 +371,8 @@ def build_matrices_and_heatmaps(top_club_ids, transfers_enriched, club_id_to_nam
         palette=Viridis256,
         value_label='Spent (€)',
         pct_matrix=mat_money_in_pct,
-        is_money=True
+        is_money=True,
+        enable_tap=True
     )
 
     # Money OUT
@@ -395,7 +396,8 @@ def build_matrices_and_heatmaps(top_club_ids, transfers_enriched, club_id_to_nam
         club_country_map,
         palette=Viridis256,
         value_label='Players in',
-        pct_matrix=mat_players_in_pct
+        pct_matrix=mat_players_in_pct,
+        enable_tap=True
     )
 
     p_players_out, po_lin_rect, po_log_rect, po_lin_cb, po_log_cb, po_pct_rect, po_pct_cb = make_heatmap(
@@ -405,7 +407,8 @@ def build_matrices_and_heatmaps(top_club_ids, transfers_enriched, club_id_to_nam
         club_country_map,
         palette=Viridis256,
         value_label='Players out',
-        pct_matrix=mat_players_out_pct
+        pct_matrix=mat_players_out_pct,
+        enable_tap=True
     )
 
     return {

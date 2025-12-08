@@ -19,6 +19,15 @@ from heatmap_factory import build_matrices_and_heatmaps, build_per_season_data
 # ---------- MAIN BUILD PIPELINE ----------
 
 def build_dashboard():
+    # Load external CSS first
+    try:
+        with open('styles.css', 'r') as f:
+            css_content = f.read()
+        print(f"Loaded styles.css ({len(css_content)} bytes)")
+    except Exception as e:
+        print(f"Error loading styles.css: {e}")
+        css_content = ""
+
     # Load data
     clubs = load_data(BASE_PATH + 'clubs.csv')
     competitions = load_data(BASE_PATH + 'competitions.csv')
@@ -73,17 +82,17 @@ def build_dashboard():
     mi_pct_cb, mo_pct_cb, pi_pct_cb, po_pct_cb = result['color_bars']['pct']
 
     # Layouts per mode
-    money_layout = column(p_money_in, p_money_out)
-    players_layout = column(p_players_in, p_players_out)
+    money_layout = column(p_money_in, p_money_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
+    players_layout = column(p_players_in, p_players_out, css_classes=['content-card'], stylesheets=[css_content], sizing_mode='scale_width')
     players_layout.visible = False  # start with Money
     
-    season_title = Div(text="Seasons")
+    season_title = Div(text="<span class='section-title'>Seasons</span>")
 
     # Season filter widget - shows which seasons are included
     season_select = CheckboxButtonGroup(
         labels=all_seasons,
         active=[i for i, s in enumerate(all_seasons) if s in selected_seasons_display],
-        width=800
+        stylesheets=[css_content]
     )
     
     season_widget_group = column(season_title, season_select)
@@ -253,7 +262,8 @@ def build_dashboard():
     competition_select = CheckboxButtonGroup(
         labels=["Overall", "Domestic league", "Domestic cup", "International cup"],
         active=[0, 1, 2, 3],
-        width=450
+        width=450,
+        stylesheets=[css_content]
     )
 
     competition_callback = CustomJS(
@@ -300,6 +310,8 @@ def build_dashboard():
     team_stats_layout = column(
         team_stats_title,
         p_team_stats,
+        css_classes=['content-card'],
+        stylesheets=[css_content]
     )
     # Hide until a club is clicked so it doesn't push the heatmaps down as an empty block
     team_stats_layout.visible = False
@@ -321,7 +333,9 @@ def build_dashboard():
     mode_select = Select(
         title="View mode",
         value="Money",
-        options=["Money", "Players"]
+        options=["Money", "Players"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     callback = CustomJS(
@@ -346,13 +360,17 @@ def build_dashboard():
     scale_select = Select(
         title="Scale / representation",
         value="Linear",
-        options=["Linear", "Log", "Percentage"]
+        options=["Linear", "Log", "Percentage"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     club_mode_select = Select(
         title="Clubs",
         value="Top 50",
-        options=["Top 50", "By country"]
+        options=["Top 50", "By country"],
+        width=150,
+        stylesheets=[css_content]
     )
 
     # Available countries (from clubs_enriched / club_country_map)
@@ -365,7 +383,9 @@ def build_dashboard():
         title="Country",
         value=available_countries[0] if available_countries else "",
         options=available_countries,
-        disabled=True
+        disabled=True,
+        width=200,
+        stylesheets=[css_content]
     )
 
     # Make top controls consistent in width
@@ -451,7 +471,7 @@ def build_dashboard():
     # Click handler for team statistics
     # Prepare data for all clubs per season
     per_season_stats_data = {}
-    for club_id in top_club_ids:
+    for club_id in all_club_ids:
         club_stats = calculate_per_season_statistics(
             club_id=club_id,
             games=games,
@@ -462,13 +482,14 @@ def build_dashboard():
         per_season_stats_data[int(club_id)] = club_stats.to_dict('records')
     
     per_season_stats_json = json.dumps(per_season_stats_data)
-    club_names_json = json.dumps({int(k): v for k, v in club_id_to_name.items() if k in top_club_ids})
+    club_names_json = json.dumps({int(k): v for k, v in club_id_to_name.items() if k in all_club_ids})
     
     # Get data sources for all rectangle renderers
-    mi_source = mi_lin_rect.data_source if mi_lin_rect else None
-    mo_source = mo_lin_rect.data_source if mo_lin_rect else None
-    pi_source = pi_lin_rect.data_source if pi_lin_rect else None
-    po_source = po_lin_rect.data_source if po_lin_rect else None
+    all_sources = []
+    for rect_list in result['rects'].values():
+        for rect in rect_list:
+            if rect:
+                all_sources.append(rect.data_source)
     
     click_callback = CustomJS(
         args=dict(
@@ -478,10 +499,7 @@ def build_dashboard():
             p_team_stats=p_team_stats,
             season_select=season_select,
             all_seasons=all_seasons,
-            mi_source=mi_source,
-            mo_source=mo_source,
-            pi_source=pi_source,
-            po_source=po_source
+            all_sources=all_sources
         ),
         code=f"""
         const perSeasonStats = {per_season_stats_json};
@@ -489,27 +507,65 @@ def build_dashboard():
         
         console.log('Callback triggered!');
         
-        // Get the source - try cb_obj first, then check all sources
         let source = null;
-        
-        // Check if cb_obj is the source (from js_on_change)
-        if (typeof cb_obj !== 'undefined' && cb_obj && cb_obj.selected && cb_obj.selected.indices) {{
-            source = cb_obj;
-            console.log('Using cb_obj as source');
+        let triggeringSource = null;
+
+        // 1. Try to identify which source triggered the event
+        if (typeof cb_obj !== 'undefined') {{
+            for (const s of all_sources) {{
+                // Check if cb_obj is the Selection object of source s
+                if (s.selected === cb_obj) {{
+                    triggeringSource = s;
+                    break;
+                }}
+                // Check if cb_obj is the Source s itself (just in case)
+                if (s === cb_obj) {{
+                    triggeringSource = s;
+                    break;
+                }}
+            }}
+        }}
+
+        // 2. Identify the source (triggering or fallback)
+        if (triggeringSource && triggeringSource.selected.indices.length > 0) {{
+            source = triggeringSource;
         }} else {{
-            // Check mo_source specifically for selection/deselection
-            if (mo_source) {{
-                source = mo_source;
-                console.log('Using mo_source');
+            // Fallback: Find any selected source
+            for (const s of all_sources) {{
+                if (s.selected.indices.length > 0) {{
+                    source = s;
+                    break;
+                }}
             }}
         }}
         
         if (!source) {{
-            console.log('No source found');
+            console.log('No source with selection found - resetting chart');
+            team_stats_layout.visible = false;
+            window.currentTeamStats = null;
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
+
+            p_team_stats.x_range.factors = [];
             return;
         }}
         
-        // Handle deselection - reset the chart
+        // Handle deselection - reset the chart (redundant check but safe)
         if (!source.selected.indices || source.selected.indices.length === 0) {{
             console.log('Deselected - resetting chart');
             team_stats_layout.visible = false;
@@ -541,6 +597,41 @@ def build_dashboard():
         
         console.log('Clicked on:', clickedClub);
         
+        // Propagate selection to ALL sources (including the current one to expand to column)
+        let anyUpdate = false;
+        for (const s of all_sources) {{
+            const newIndices = [];
+            const clubs = s.data.club;
+            for (let i = 0; i < clubs.length; i++) {{
+                if (clubs[i] === clickedClub) {{
+                    newIndices.push(i);
+                }}
+            }}
+            
+            // Check if update is needed
+            const currentIndices = s.selected.indices;
+            let needsUpdate = false;
+            if (currentIndices.length !== newIndices.length) {{
+                needsUpdate = true;
+            }} else {{
+                for (let k = 0; k < newIndices.length; k++) {{
+                    if (currentIndices[k] !== newIndices[k]) {{
+                        needsUpdate = true;
+                        break;
+                    }}
+                }}
+            }}
+            
+            if (needsUpdate) {{
+                s.selected.indices = newIndices;
+                anyUpdate = true;
+            }}
+        }}
+        
+        if (anyUpdate) {{
+            return;
+        }}
+        
         // Extract club name from "Club Name (Country)" format
         const match = clickedClub.match(/^(.+?) \\((.+?)\\)$/);
         if (!match) {{
@@ -568,6 +659,27 @@ def build_dashboard():
             console.log('No stats for club ID:', clubId);
             team_stats_title.text = '<h3 style=\"color: orange;\">' + clubName + ' - No statistics available</h3>';
             team_stats_layout.visible = true;
+            
+            // Clear chart data
+            chart_source.data = {{
+                season: [],
+                spent: [],
+                earned: [],
+                win_pct: [],
+                win_pct_league: [],
+                win_pct_domestic_cup: [],
+                win_pct_international_cup: [],
+                games_played: [],
+                games_won: [],
+                games_played_league: [],
+                games_won_league: [],
+                games_played_domestic_cup: [],
+                games_won_domestic_cup: [],
+                games_played_international_cup: [],
+                games_won_international_cup: [],
+            }};
+            p_team_stats.x_range.factors = [];
+            
             return;
         }}
         
@@ -667,7 +779,7 @@ def build_dashboard():
         const totalEarned = earned.reduce((sum, s) => sum + s, 0);
         const netSpend = totalEarned - totalSpent;
         
-        team_stats_title.text = '<h3 style="margin-bottom: 10px;">' + clubName + ' - Money vs Performance</h3>' +
+        team_stats_title.text = '<div class="section-title">' + clubName + ' - Money vs Performance</div>' +
             '<div style="display: flex; gap: 30px; color: #666; font-size: 14px; margin: 10px 0;">' +
             '<div><strong>Games:</strong> ' + totalGames + ' played, ' + totalWins + ' won (' + avgWinPct + '%)</div>' +
             '<div><strong>Spending:</strong> €' + totalSpent.toFixed(1) + 'M</div>' +
@@ -689,15 +801,22 @@ def build_dashboard():
         """
     )
     
-    # Connect callback only to money_out source (second heatmap)
-    if mo_source:
-        mo_source.selected.js_on_change('indices', click_callback)
+    # Connect callback to all sources (lin, log, pct) for all plots
+    all_rects = []
+    all_rects.extend(result['rects']['lin'])
+    all_rects.extend(result['rects']['log'])
+    all_rects.extend(result['rects']['pct'])
     
-    # Also add TapTool callback to money_out plot directly
+    for rect in all_rects:
+        if rect:
+            rect.data_source.selected.js_on_change('indices', click_callback)
+
+    # Also add TapTool callback to all plots directly
     from bokeh.models import TapTool
-    tap_tool = p_money_out.select_one(TapTool)
-    if tap_tool:
-        tap_tool.callback = click_callback
+    for p in [p_money_in, p_money_out, p_players_in, p_players_out]:
+        tap_tool = p.select_one(TapTool)
+        if tap_tool:
+            tap_tool.callback = click_callback
     
     # Create a callback to update team stats when filters change
     update_team_stats_callback = CustomJS(
@@ -838,7 +957,7 @@ def build_dashboard():
         const totalEarned = earned.reduce((sum, s) => sum + s, 0);
         const netSpend = totalEarned - totalSpent;
         
-        team_stats_title.text = '<h3 style="margin-bottom: 10px;">' + clubName + ' - Money vs Performance</h3>' +
+        team_stats_title.text = '<div class="section-title">' + clubName + ' - Money vs Performance</div>' +
             '<div style="display: flex; gap: 30px; color: #666; font-size: 14px; margin: 10px 0;">' +
             '<div><strong>Games:</strong> ' + totalGames + ' played, ' + totalWins + ' won (' + avgWinPct + '%)</div>' +
             '<div><strong>Spending:</strong> €' + totalSpent.toFixed(1) + 'M</div>' +
@@ -1486,35 +1605,33 @@ def build_dashboard():
         <div style="display:none;">Debug div loaded</div>
     """, visible=False)
 
-    page_title = Div(
-        text="""
-        <h1 style="margin-bottom:4px;">Club–Country Transfer Explorer</h1>
-        <p style="margin-top:0; color:#555;">
-            Explore transfer spending, income and performance by club and country.
-        </p>
-        """,
-        width=1200
-    )
-
-    # Top control bar: view, scale, club mode, country
-    top_controls = row(
-        mode_select,
-        scale_select,
-        club_mode_select,
-        country_select,
-        sizing_mode="scale_width"
-    )
-
-    # Seasons in their own full-width row
-    season_row = row(
+    # Combined control panel
+    controls_panel = column(
+        row(mode_select, scale_select, club_mode_select, country_select, spacing=20),
         season_widget_group,
-        sizing_mode="scale_width"
+        css_classes=['control-panel'],
+        stylesheets=[css_content],
+        spacing=20
+    )
+
+    # Inject CSS directly into the page title Div to ensure it's rendered
+    page_title = Div(
+        text=f"""
+        <style>
+        {css_content}
+        </style>
+        <div class="dashboard-header">
+            <h1>Club–Country Transfer Explorer</h1>
+            <p>
+                Explore transfer spending, income and performance by club and country.
+            </p>
+        </div>
+        """,
+        sizing_mode="stretch_width"
     )
 
     layout = column(
-        page_title,
-        top_controls,
-        season_row,
+        row(page_title, controls_panel, sizing_mode="scale_width"),
         money_layout,
         players_layout,
         team_stats_layout,
